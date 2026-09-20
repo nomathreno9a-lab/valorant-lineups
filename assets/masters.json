@@ -1,0 +1,1076 @@
+{
+  "throws": [
+    "立ち投げ",
+    "ジャンプ投げ",
+    "走り投げ",
+    "しゃがみ投げ",
+    "走りジャンプ投げ"
+  ],
+  "maps": [
+    {
+      "name": "アイスボックス",
+      "icon": "Icebox",
+      "aliases": [
+        "あいすぼっくす",
+        "アイボ",
+        "あいぼ",
+        "アイス",
+        "あいす",
+        "ボックス",
+        "ぼっくす"
+      ]
+    },
+    {
+      "name": "アセント",
+      "icon": "Ascent",
+      "aliases": [
+        "あせんと",
+        "アセット",
+        "あせっと",
+        "アセト",
+        "あっせんと",
+        "あせんど",
+        "アセンド"
+      ]
+    },
+    {
+      "name": "アビス",
+      "icon": "Abyss",
+      "aliases": [
+        "あびす"
+      ]
+    },
+    {
+      "name": "カロード",
+      "icon": "Corrode",
+      "aliases": [
+        "かろーど"
+      ]
+    },
+    {
+      "name": "サミット",
+      "icon": "Summit",
+      "aliases": [
+        "さみっと"
+      ]
+    },
+    {
+      "name": "サンセット",
+      "icon": "Sunset",
+      "aliases": [
+        "さんせっと",
+        "酸性",
+        "さんせい"
+      ]
+    },
+    {
+      "name": "スプリット",
+      "icon": "Split",
+      "aliases": [
+        "すぷりっと",
+        "スピリット",
+        "すぴりっと",
+        "スリット",
+        "すりっと",
+        "スプ",
+        "すぷ"
+      ]
+    },
+    {
+      "name": "バインド",
+      "icon": "Bind",
+      "aliases": [
+        "ばいんど",
+        "マインド",
+        "まいんど",
+        "パインド",
+        "ぱいんど",
+        "バイン",
+        "ばいん"
+      ]
+    },
+    {
+      "name": "パール",
+      "icon": "Pearl",
+      "aliases": [
+        "ぱーる",
+        "バール",
+        "ばーる"
+      ]
+    },
+    {
+      "name": "フラクチャー",
+      "icon": "Fracture",
+      "aliases": [
+        "ふらくちゃー",
+        "フラクチャ",
+        "ふらくちゃ",
+        "楽茶"
+      ]
+    },
+    {
+      "name": "ブリーズ",
+      "icon": "Breeze",
+      "aliases": [
+        "ぶりーず",
+        "フリーズ",
+        "ふりーず",
+        "リリース",
+        "りりーす"
+      ]
+    },
+    {
+      "name": "ヘイヴン",
+      "icon": "Haven",
+      "aliases": [
+        "ヘイブン",
+        "へいぶん",
+        "へいゔん",
+        "英文",
+        "えいぶん"
+      ]
+    },
+    {
+      "name": "ロータス",
+      "icon": "Lotus",
+      "aliases": [
+        "ろーたす",
+        "タス",
+        "たす",
+        "ロータ",
+        "ろーた"
+      ]
+    }
+  ],
+  "agents": [
+    {
+      "name": "アイソ",
+      "reading": "あいそ",
+      "icon": "Iso",
+      "aliases": [
+        "あいそ",
+        "愛想"
+      ],
+      "abilities": [
+        {
+          "name": "C-コンティンジェンシー",
+          "icon": "Contingency"
+        },
+        {
+          "name": "Q-アンダーカット",
+          "icon": "Undercut"
+        },
+        {
+          "name": "E-ダブルタップ",
+          "icon": "Double Tap"
+        },
+        {
+          "name": "X-キルコントラクト",
+          "icon": "Kill Contract"
+        }
+      ]
+    },
+    {
+      "name": "アストラ",
+      "reading": "あすとら",
+      "icon": "Astra",
+      "aliases": [
+        "あすとら"
+      ],
+      "abilities": [
+        {
+          "name": "C-グラビティウェル",
+          "icon": "Gravity Well"
+        },
+        {
+          "name": "Q-ノヴァパルス",
+          "icon": "Nova Pulse"
+        },
+        {
+          "name": "E-ネビュラ",
+          "icon": "Nebula   Dissipate"
+        },
+        {
+          "name": "X-コズミックディバイド",
+          "icon": "Astral Form  Cosmic Divide"
+        }
+      ]
+    },
+    {
+      "name": "ウェイレイ",
+      "reading": "うぇいれい",
+      "icon": "Waylay",
+      "aliases": [
+        "うぇいれい"
+      ],
+      "abilities": [
+        {
+          "name": "C-サチュレート",
+          "icon": "Saturate"
+        },
+        {
+          "name": "Q-ライトスピード",
+          "icon": "Lightspeed"
+        },
+        {
+          "name": "E-リフラクト",
+          "icon": "Refract"
+        },
+        {
+          "name": "X-コンバージェントパス",
+          "icon": "Convergent Paths"
+        }
+      ]
+    },
+    {
+      "name": "オーメン",
+      "reading": "おーめん",
+      "icon": "Omen",
+      "aliases": [
+        "おーめん",
+        "多め",
+        "おおめ"
+      ],
+      "abilities": [
+        {
+          "name": "C-シュラウドステップ",
+          "icon": "Shrouded Step"
+        },
+        {
+          "name": "Q-パラノイア",
+          "icon": "Paranoia"
+        },
+        {
+          "name": "E-ダークカヴァー",
+          "icon": "Dark Cover",
+          "aliases": [
+            "ダークカバー",
+            "だーくかばー",
+            "ダークカヴァー",
+            "だーくかゔぁー"
+          ]
+        },
+        {
+          "name": "X-フロム・ザ・シャドウズ",
+          "icon": "From the Shadows",
+          "aliases": [
+            "フロムザシャドウズ",
+            "ふろむざしゃどうず",
+            "フロム・ザ・シャドウズ",
+            "ウルト"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "キルジョイ",
+      "reading": "きるじょい",
+      "icon": "Killjoy",
+      "aliases": [
+        "きるじょい",
+        "キルジョ",
+        "きるじょ",
+        "近所",
+        "きんじょ",
+        "ジョイ",
+        "じょい"
+      ],
+      "abilities": [
+        {
+          "name": "C-ナノスワーム",
+          "icon": "Nanoswarm"
+        },
+        {
+          "name": "Q-アラームボット",
+          "icon": "ALARMBOT"
+        },
+        {
+          "name": "E-タレット",
+          "icon": "TURRET"
+        },
+        {
+          "name": "X-ロックダウン",
+          "icon": "Lockdown"
+        }
+      ]
+    },
+    {
+      "name": "クローヴ",
+      "reading": "くろーヴ",
+      "icon": "Clove",
+      "aliases": [
+        "くろーぶ",
+        "クローブ",
+        "くろーゔ",
+        "黒部"
+      ],
+      "abilities": [
+        {
+          "name": "C-ピック・ミー・アップ",
+          "icon": "Pick-me-up"
+        },
+        {
+          "name": "Q-メドル",
+          "icon": "Meddle"
+        },
+        {
+          "name": "E-ルース",
+          "icon": "Ruse"
+        },
+        {
+          "name": "X-ノット・デッド・イェット",
+          "icon": "Not Dead Yet"
+        }
+      ]
+    },
+    {
+      "name": "KAY/O",
+      "reading": "けいおー",
+      "icon": "KAY/O",
+      "aliases": [
+        "ケイオー",
+        "けいおー",
+        "ケイ・オー",
+        "KO",
+        "K/O",
+        "経営",
+        "KAYO",
+        "帝王",
+        "京王"
+      ],
+      "abilities": [
+        {
+          "name": "C-フラグ/メント",
+          "icon": "FRAGment"
+        },
+        {
+          "name": "Q-フラッシュ/ドライブ",
+          "icon": "FLASHdrive"
+        },
+        {
+          "name": "E-ゼロ/ポイント",
+          "icon": "ZEROpoint"
+        },
+        {
+          "name": "X-ヌル/コマンド",
+          "icon": "NULLcmd"
+        }
+      ]
+    },
+    {
+      "name": "ゲッコー",
+      "reading": "げっこー",
+      "icon": "Gekko",
+      "aliases": [
+        "げっこー",
+        "月光",
+        "げっこう",
+        "結構",
+        "けっこう",
+        "下校",
+        "げこう"
+      ],
+      "abilities": [
+        {
+          "name": "C-モッシュピット",
+          "icon": "Mosh Pit"
+        },
+        {
+          "name": "Q-ウィングマン",
+          "icon": "Wingman"
+        },
+        {
+          "name": "E-ディジー",
+          "icon": "Dizzy"
+        },
+        {
+          "name": "X-スラッシュ",
+          "icon": "Thrash"
+        }
+      ]
+    },
+    {
+      "name": "サイファー",
+      "reading": "さいふぁー",
+      "icon": "Cypher",
+      "aliases": [
+        "さいふぁー",
+        "財布",
+        "さいふ",
+        "サイハ"
+      ],
+      "abilities": [
+        {
+          "name": "C-トラップワイヤー",
+          "icon": "Trapwire"
+        },
+        {
+          "name": "Q-サイバーケージ",
+          "icon": "Cyber Cage"
+        },
+        {
+          "name": "E-スパイカメラ",
+          "icon": "Spycam"
+        },
+        {
+          "name": "X-ニューラルセフト",
+          "icon": "Neural Theft"
+        }
+      ]
+    },
+    {
+      "name": "ジェット",
+      "reading": "じぇっと",
+      "icon": "Jett",
+      "aliases": [
+        "じぇっと"
+      ],
+      "abilities": [
+        {
+          "name": "C-クラウドバースト",
+          "icon": "Cloudburst"
+        },
+        {
+          "name": "Q-アップドラフト",
+          "icon": "Updraft"
+        },
+        {
+          "name": "E-テイルウィンド",
+          "icon": "Tailwind"
+        },
+        {
+          "name": "X-ブレードストーム",
+          "icon": "Blade Storm"
+        }
+      ]
+    },
+    {
+      "name": "スカイ",
+      "reading": "すかい",
+      "icon": "Skye",
+      "aliases": [
+        "すかい",
+        "使い"
+      ],
+      "abilities": [
+        {
+          "name": "C-リグロウス",
+          "icon": "Regrowth",
+          "aliases": [
+            "リグロース",
+            "りぐろーす",
+            "リグロウス",
+            "りぐろうす",
+            "回復"
+          ]
+        },
+        {
+          "name": "Q-トレイルブレイザー",
+          "icon": "Trailblazer"
+        },
+        {
+          "name": "E-ガイディングライト",
+          "icon": "Guiding Light"
+        },
+        {
+          "name": "X-シーカー",
+          "icon": "Seekers"
+        }
+      ]
+    },
+    {
+      "name": "セージ",
+      "reading": "せーじ",
+      "icon": "Sage",
+      "aliases": [
+        "せいじ",
+        "政治"
+      ],
+      "abilities": [
+        {
+          "name": "C-バリアオーブ",
+          "icon": "Barrier Orb"
+        },
+        {
+          "name": "Q-スロウオーブ",
+          "icon": "Slow Orb"
+        },
+        {
+          "name": "E-ヒーリングオーブ",
+          "icon": "Healing Orb"
+        },
+        {
+          "name": "X-リザレクション",
+          "icon": "Resurrection"
+        }
+      ]
+    },
+    {
+      "name": "ソーヴァ",
+      "reading": "そーヴぁ",
+      "icon": "Sova",
+      "aliases": [
+        "そーば",
+        "そーゔぁ",
+        "ソーバ",
+        "ソバ",
+        "そば",
+        "宗派",
+        "しゅうは"
+      ],
+      "abilities": [
+        {
+          "name": "C-オウルドローン",
+          "icon": "Owl Drone"
+        },
+        {
+          "name": "Q-ショックボルト",
+          "icon": "Shock Bolt"
+        },
+        {
+          "name": "E-リコンボルト",
+          "icon": "Recon Bolt"
+        },
+        {
+          "name": "X-ハンターズフューリー",
+          "icon": "Hunters Fury"
+        }
+      ]
+    },
+    {
+      "name": "チェンバー",
+      "reading": "ちぇんばー",
+      "icon": "Chamber",
+      "aliases": [
+        "ちぇんばー",
+        "メンバー",
+        "現場"
+      ],
+      "abilities": [
+        {
+          "name": "C-トレードマーク",
+          "icon": "Trademark"
+        },
+        {
+          "name": "Q-ヘッドハンター",
+          "icon": "Headhunter"
+        },
+        {
+          "name": "E-ランデヴー",
+          "icon": "Rendezvous"
+        },
+        {
+          "name": "X-ツール・ド・フォース",
+          "icon": "Tour De Force"
+        }
+      ]
+    },
+    {
+      "name": "テホ",
+      "reading": "てほ",
+      "icon": "Tejo",
+      "aliases": [
+        "てほ"
+      ],
+      "abilities": [
+        {
+          "name": "C-ステルスドローン",
+          "icon": "Stealth Drone"
+        },
+        {
+          "name": "Q-スペシャルデリバリー",
+          "icon": "Special Delivery"
+        },
+        {
+          "name": "E-誘導サルヴォ",
+          "icon": "Guided Salvo"
+        },
+        {
+          "name": "X-アルマゲドン",
+          "icon": "Armageddon"
+        }
+      ]
+    },
+    {
+      "name": "デッドロック",
+      "reading": "でっどろっく",
+      "icon": "Deadlock",
+      "aliases": [
+        "でっどろっく"
+      ],
+      "abilities": [
+        {
+          "name": "C-バリアメッシュ",
+          "icon": "Barrier Mesh",
+          "aliases": [
+            "バリアメッシュ",
+            "ばりあめっしゅ",
+            "バリア",
+            "網"
+          ]
+        },
+        {
+          "name": "Q-ソニックセンサー",
+          "icon": "Sonic Sensor",
+          "aliases": [
+            "ソニックセンサー",
+            "そにっくせんさー",
+            "センサー",
+            "トラップ"
+          ]
+        },
+        {
+          "name": "E-グラヴィネット",
+          "icon": "GravNet",
+          "aliases": [
+            "グラヴィネット",
+            "ぐらゔぃねっと",
+            "ネット",
+            "しゃがみネット"
+          ]
+        },
+        {
+          "name": "X-アナイアレーション",
+          "icon": "Annihilation",
+          "aliases": [
+            "アナイアレーション",
+            "あないあれーしょん",
+            "ウルト",
+            "繭",
+            "繭玉"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ネオン",
+      "reading": "ねおん",
+      "icon": "Neon",
+      "aliases": [
+        "ねおん",
+        "気温"
+      ],
+      "abilities": [
+        {
+          "name": "C-ファストレーン",
+          "icon": "Fast Lane"
+        },
+        {
+          "name": "Q-リレーボルト",
+          "icon": "Relay Bolt"
+        },
+        {
+          "name": "E-ハイギア",
+          "icon": "High Gear"
+        },
+        {
+          "name": "X-オーバードライブ",
+          "icon": "Overdrive"
+        }
+      ]
+    },
+    {
+      "name": "ハーバー",
+      "reading": "はーばー",
+      "icon": "Harbor",
+      "aliases": [
+        "はーばー"
+      ],
+      "abilities": [
+        {
+          "name": "C-ストームサージ",
+          "icon": "Storm Surge",
+          "aliases": [
+            "ストームサージ",
+            "カスケード",
+            "かすけーど",
+            "すとーむさーじ",
+            "波"
+          ]
+        },
+        {
+          "name": "Q-ハイタイド",
+          "icon": "High Tide",
+          "aliases": [
+            "ハイタイド",
+            "はいたいど",
+            "カーテン",
+            "水壁"
+          ]
+        },
+        {
+          "name": "E-コーヴ",
+          "icon": "Cove",
+          "aliases": [
+            "コーヴ",
+            "こーゔ",
+            "こーぶ",
+            "ドーム",
+            "バブル",
+            "水玉"
+          ]
+        },
+        {
+          "name": "X-レコニング",
+          "icon": "Reckoning",
+          "aliases": [
+            "レコニング",
+            "れこにんぐ",
+            "ウルト",
+            "間欠泉"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "フェイド",
+      "reading": "ふぇいど",
+      "icon": "Fade",
+      "aliases": [
+        "ふぇいど",
+        "フェード",
+        "ふぇーど",
+        "制度"
+      ],
+      "abilities": [
+        {
+          "name": "C-プラウラー",
+          "icon": "Prowler"
+        },
+        {
+          "name": "Q-シーズ",
+          "icon": "Seize"
+        },
+        {
+          "name": "E-ホウント",
+          "icon": "Haunt"
+        },
+        {
+          "name": "X-ナイトフォール",
+          "icon": "Nightfall"
+        }
+      ]
+    },
+    {
+      "name": "フェニックス",
+      "reading": "ふぇにっくす",
+      "icon": "Phoenix",
+      "aliases": [
+        "ふぇにっくす",
+        "フェニ",
+        "ふぇに"
+      ],
+      "abilities": [
+        {
+          "name": "C-ブレイズ",
+          "icon": "Blaze",
+          "aliases": [
+            "ブレイズ",
+            "ぶれいず",
+            "壁",
+            "炎壁"
+          ]
+        },
+        {
+          "name": "Q-ホットハンド",
+          "icon": "Hot Hands",
+          "aliases": [
+            "ホットハンド",
+            "ホットハンズ",
+            "ほっとはんど",
+            "火炎瓶",
+            "モロトフ"
+          ]
+        },
+        {
+          "name": "E-カーブボール",
+          "icon": "Curveball",
+          "aliases": [
+            "カーブボール",
+            "かーぶぼーる",
+            "フラッシュ",
+            "閃光"
+          ]
+        },
+        {
+          "name": "X-ラン・イット・バック",
+          "icon": "Run it Back",
+          "aliases": [
+            "ラン・イット・バック",
+            "らんいっとばっく",
+            "ウルト",
+            "ウルト復活"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ブリムストーン",
+      "reading": "ぶりむすとーん",
+      "icon": "Brimstone",
+      "aliases": [
+        "ぶりむすとーん",
+        "ブリム",
+        "ぶりむ"
+      ],
+      "abilities": [
+        {
+          "name": "C-スティムビーコン",
+          "icon": "Stim Beacon"
+        },
+        {
+          "name": "Q-インセンディアリー",
+          "icon": "Incendiary"
+        },
+        {
+          "name": "E-スカイスモーク",
+          "icon": "Sky Smoke"
+        },
+        {
+          "name": "X-オービタルストライク",
+          "icon": "Orbital Strike"
+        }
+      ]
+    },
+    {
+      "name": "ブリーチ",
+      "reading": "ぶりーち",
+      "icon": "Breach",
+      "aliases": [
+        "ぶりーち",
+        "リーチ",
+        "りーち"
+      ],
+      "abilities": [
+        {
+          "name": "C-アフターショック",
+          "icon": "Aftershock"
+        },
+        {
+          "name": "Q-フラッシュポイント",
+          "icon": "Flashpoint"
+        },
+        {
+          "name": "E-フォールトライン",
+          "icon": "Fault Line"
+        },
+        {
+          "name": "X-ローリングサンダー",
+          "icon": "Rolling Thunder"
+        }
+      ]
+    },
+    {
+      "name": "ミクス",
+      "reading": "みくす",
+      "icon": "Miks",
+      "aliases": [],
+      "abilities": [
+        {
+          "name": "C-M-パルス",
+          "icon": "M-pulse"
+        },
+        {
+          "name": "Q-ハーモナイズ",
+          "icon": "Harmonize"
+        },
+        {
+          "name": "E-ウェーブフォーム",
+          "icon": "Waveform"
+        },
+        {
+          "name": "X-ベースクエイク",
+          "icon": "Bassquake"
+        }
+      ]
+    },
+    {
+      "name": "ヨル",
+      "reading": "よる",
+      "icon": "Yoru",
+      "aliases": [
+        "よる",
+        "夜"
+      ],
+      "abilities": [
+        {
+          "name": "C-フェイクアウト",
+          "icon": "FAKEOUT"
+        },
+        {
+          "name": "Q-ブラインドサイド",
+          "icon": "BLINDSIDE"
+        },
+        {
+          "name": "E-ゲートクラッシュ",
+          "icon": "GATECRASH"
+        },
+        {
+          "name": "X-ディメンショナル ドリフト",
+          "icon": "DIMENSIONAL DRIFT",
+          "aliases": [
+            "ディメンショナルドリフト",
+            "ディメンショナル ドリフト",
+            "でぃめんしょなるどりふと",
+            "ウルト",
+            "仮面"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "レイズ",
+      "reading": "れいず",
+      "icon": "Raze",
+      "aliases": [
+        "れいず",
+        "レンズ",
+        "れんず"
+      ],
+      "abilities": [
+        {
+          "name": "C-ブームボット",
+          "icon": "Boom Bot"
+        },
+        {
+          "name": "Q-ブラストパック",
+          "icon": "Blast Pack"
+        },
+        {
+          "name": "E-ペイント弾",
+          "icon": "Paint Shells"
+        },
+        {
+          "name": "X-ショーストッパー",
+          "icon": "Showstopper"
+        }
+      ]
+    },
+    {
+      "name": "レイナ",
+      "reading": "れいな",
+      "icon": "Reyna",
+      "aliases": [
+        "れいな",
+        "麗奈"
+      ],
+      "abilities": [
+        {
+          "name": "C-リーア",
+          "icon": "Leer"
+        },
+        {
+          "name": "Q-デバウアー",
+          "icon": "Devour"
+        },
+        {
+          "name": "E-ディスミス",
+          "icon": "Dismiss",
+          "aliases": [
+            "ディスミズ",
+            "でぃすみず",
+            "ディスミス",
+            "でぃすみす",
+            "無敵"
+          ]
+        },
+        {
+          "name": "X-エンプレス",
+          "icon": "Empress"
+        }
+      ]
+    },
+    {
+      "name": "ヴァイス",
+      "reading": "ヴぁいす",
+      "icon": "Vyse",
+      "aliases": [
+        "ばいす",
+        "バイス"
+      ],
+      "abilities": [
+        {
+          "name": "C-レーザーヴァイン",
+          "icon": "Razorvine",
+          "aliases": [
+            "レイザーヴァイン",
+            "れいざーばいん",
+            "レーザーヴァイン",
+            "れーざーばいん",
+            "蔦",
+            "トゲ"
+          ]
+        },
+        {
+          "name": "Q-シアー",
+          "icon": "Shear"
+        },
+        {
+          "name": "E-アークローズ",
+          "icon": "Arc Rose"
+        },
+        {
+          "name": "X-スチールガーデン",
+          "icon": "Steel Garden"
+        }
+      ]
+    },
+    {
+      "name": "ヴァイパー",
+      "reading": "ヴぁいぱー",
+      "icon": "Viper",
+      "aliases": [
+        "ばいぱー",
+        "バイパー",
+        "ばいばー",
+        "バイバー"
+      ],
+      "abilities": [
+        {
+          "name": "C-スネークバイト",
+          "icon": "Snake Bite"
+        },
+        {
+          "name": "Q-ポイズンクラウド",
+          "icon": "Poison Cloud"
+        },
+        {
+          "name": "E-トキシックスクリーン",
+          "icon": "Toxic Screen"
+        },
+        {
+          "name": "X-ヴァイパーズピット",
+          "icon": "Vipers Pit"
+        }
+      ]
+    },
+    {
+      "name": "ヴィトー",
+      "reading": "ヴぃとー",
+      "icon": "Veto",
+      "aliases": [
+        "びとー",
+        "ヴィト",
+        "びと"
+      ],
+      "abilities": [
+        {
+          "name": "C-クロスカット",
+          "icon": "Crosscut"
+        },
+        {
+          "name": "Q-チョークホールド",
+          "icon": "Chokehold"
+        },
+        {
+          "name": "E-インタセプター",
+          "icon": "Interceptor"
+        },
+        {
+          "name": "X-エヴォリューション",
+          "icon": "Evolution"
+        }
+      ]
+    }
+  ]
+}
