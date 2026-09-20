@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VALORANT 定点アシスタント Webビューア</title>
+  <link rel="stylesheet" href="style.css?v=20260920_4">
+</head>
+<body>
+  <!-- 最上部ヘッダー -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="app-brand">
+        <span class="brand-sub">VALORANT LINEUP ASSISTANT</span>
+        <h1 class="brand-title">定点アシスタント Webビューア</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <!-- マップ・エージェント読み込み（VALORANTログ連携） -->
+      <div class="log-reader-box">
+        <button id="btn-read-log" class="btn-log-action" title="VALORANTのログファイルを選択して現在マッチを自動取得">
+          <span class="btn-icon">&#x21BB;</span>
+          マップ・エージェント読み込み
+        </button>
+        <input type="file" id="log-file-input" accept=".log,.txt" style="display: none;">
+        <span id="log-status-badge" class="log-status-badge">ログ待機中</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 検索フィルター 4大スロットエリア -->
+  <section class="filter-slots-section">
+    <div class="filter-slots-container">
+      <!-- スロット1: マップ選択カード (ローディングスクリーンWebP) -->
+      <div class="filter-slot slot-map" id="slot-map" title="クリックしてマップ一覧から選択">
+        <div class="slot-bg-loading" id="slot-map-bg"></div>
+        <div class="slot-overlay">
+          <span class="slot-badge-label">マップ</span>
+          <span class="slot-main-title" id="slot-map-title">全マップ</span>
+        </div>
+        <span class="slot-chevron">&#x25BC;</span>
+      </div>
+
+      <!-- スロット2: エージェント選択カード (大アイコン) -->
+      <div class="filter-slot slot-agent" id="slot-agent" title="クリックしてエージェント一覧から選択">
+        <div class="slot-agent-icon-box">
+          <img id="slot-agent-img" src="assets/agents/Sova/display_icon.png" alt="エージェントアイコン" style="display: none;">
+          <div class="slot-agent-placeholder" id="slot-agent-placeholder">&#x25C9;</div>
+        </div>
+        <div class="slot-agent-text-box">
+          <span class="slot-badge-label">エージェント</span>
+          <span class="slot-main-title" id="slot-agent-title">全エージェント</span>
+        </div>
+        <span class="slot-chevron">&#x25BC;</span>
+      </div>
+
+      <!-- スロット3: 4つのスキルアイコン (大きめ横並び・アイコンのみ) -->
+      <div class="filter-slot slot-abilities" id="slot-abilities">
+        <span class="slot-badge-label">スキル</span>
+        <div class="ability-icons-row" id="ability-icons-row">
+          <div class="ability-placeholder-text">エージェントを選択してください</div>
+        </div>
+      </div>
+
+      <!-- スロット4: フリーワード検索ボックス -->
+      <div class="filter-slot slot-search">
+        <span class="slot-badge-label">フリーワード検索</span>
+        <div class="search-inner-wrap">
+          <span class="search-icon">&#x2315;</span>
+          <input type="text" id="keyword-search-input" placeholder="例: 箱上, デフォルト, 空爆, ヘブン..." autocomplete="off">
+          <button id="btn-clear-search" class="btn-clear-search" style="display: none;">&times;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下側展開ドロワー（マップ一覧アコーディオン） -->
+    <div class="expand-drawer" id="drawer-map">
+      <div class="drawer-header">
+        <span class="drawer-title">マップを選択</span>
+        <button class="btn-drawer-close" id="btn-close-map-drawer">&times;</button>
+      </div>
+      <div class="drawer-grid map-grid-container" id="drawer-map-grid">
+        <!-- JSで動的レンダリング -->
+      </div>
+    </div>
+
+    <!-- 下側展開ドロワー（エージェント一覧アコーディオン） -->
+    <div class="expand-drawer" id="drawer-agent">
+      <div class="drawer-header">
+        <span class="drawer-title">エージェントを選択</span>
+        <button class="btn-drawer-close" id="btn-close-agent-drawer">&times;</button>
+      </div>
+      <div class="drawer-grid agent-grid-container" id="drawer-agent-grid">
+        <!-- JSで動的レンダリング -->
+      </div>
+    </div>
+  </section>
+
+  <!-- メインコンテンツエリア -->
+  <main class="main-container">
+    <!-- モバイル用ビュー切り替えタブ (スマホ幅のみ表示) -->
+    <div class="mobile-tab-bar">
+      <button class="mobile-tab active" id="tab-btn-list">定点一覧 (<span id="mobile-lineup-count">0</span>)</button>
+      <button class="mobile-tab" id="tab-btn-detail">定点プレビュー</button>
+    </div>
+
+    <!-- 左カラム: 定点一覧リスト -->
+    <aside class="sidebar-lineup-list" id="sidebar-lineup-list">
+      <div class="list-header">
+        <span class="list-title">該当定点一覧</span>
+        <span class="list-count" id="list-count-badge">0 件</span>
+      </div>
+      <div class="lineup-cards-scroll" id="lineup-cards-container">
+        <!-- JSで定点カードを動的レンダリング -->
+      </div>
+    </aside>
+
+    <!-- 右カラム: 定点観測・詳細プレビュー (アプリ版と同寸・同等レイアウト) -->
+    <section class="detail-preview-panel" id="detail-preview-panel">
+      <!-- 未選択時プレースホルダー -->
+      <div class="preview-empty-state" id="preview-empty-state">
+        <div class="empty-icon">&#x25CE;</div>
+        <p class="empty-text">左の一覧から確認したい定点を選択してください</p>
+      </div>
+
+      <!-- 定点詳細コンテンツ -->
+      <div class="preview-content-box" id="preview-content-box" style="display: none;">
+        <!-- 上段ヘッダーカード -->
+        <div class="title-info-card" id="title-info-card">
+          <div class="title-left">
+            <h2 class="title-heading" id="view-title">アセント - ソーヴァ (リコンボルト)</h2>
+            <div class="title-tags" id="view-tags">
+              <span class="tag tag-map" id="tag-map">アセント</span>
+              <span class="tag tag-agent" id="tag-agent">ソーヴァ</span>
+              <span class="tag tag-ability" id="tag-ability">リコンボルト</span>
+              <span class="tag tag-loc" id="tag-loc">Aメイン ➔ Aサイト</span>
+              <span class="tag tag-throw" id="tag-throw">立ち投げ</span>
+            </div>
+            <div class="title-notes-row" id="view-notes">メモ: サイト内広範囲索敵</div>
+          </div>
+          <div class="title-right">
+            <!-- 共有ボタン（まとめ画像＋Web版URL同時コピー） -->
+            <button id="btn-share-lineup" class="btn-share-primary">
+              <span class="btn-share-icon">&#x2399;</span>
+              共有 (画像+URL)
+            </button>
+          </div>
+        </div>
+
+        <!-- モバイル用 画像表示切り替えタブ (スマホ幅のみ表示) -->
+        <div class="mobile-image-tabs" id="mobile-image-tabs">
+          <button class="m-img-tab active" data-img-target="minimap">ミニマップ</button>
+          <button class="m-img-tab" data-img-target="aim">全体画面</button>
+          <button class="m-img-tab" data-img-target="stand">立ち位置</button>
+          <button class="m-img-tab" data-img-target="zoom">拡大図 (照準)</button>
+        </div>
+
+        <!-- 下段: 3列プレビュー領域（左: ミニマップ、中央: 全体＆立ち位置、右: 拡大図） -->
+        <div class="preview-grid-row">
+          <!-- 左列: ミニマップ (1024x1024 + 青ピン[立ち位置] + 赤ピン[着弾位置]) -->
+          <div class="preview-col-minimap" id="card-minimap">
+            <div class="preview-card minimap-card">
+              <div class="card-header-row">
+                <div class="card-header-label">ミニマップ</div>
+                <div class="map-side-toggle-group">
+                  <button type="button" class="btn-side-toggle active-atk" id="btn-side-atk" title="アタッカー視点">アタッカー</button>
+                  <button type="button" class="btn-side-toggle" id="btn-side-def" title="ディフェンダー視点">ディフェンダー</button>
+                </div>
+              </div>
+              <div class="card-img-box aspect-1-1 minimap-viewport" id="minimap-viewport">
+                <img id="img-minimap-view" src="" alt="ミニマップ">
+                <!-- 青ピン（立ち位置） -->
+                <div class="minimap-pin pin-start" id="pin-start-marker" style="display: none;" title="投げる位置">
+                  <span class="pin-badge-text">投げる</span>
+                </div>
+                <!-- 赤ピン（着弾位置） -->
+                <div class="minimap-pin pin-end" id="pin-end-marker" style="display: none;" title="着弾位置">
+                  <span class="pin-badge-text">着弾</span>
+                </div>
+              </div>
+              <!-- 凡例バー -->
+              <div class="minimap-legend-bar">
+                <span class="legend-item"><span class="legend-dot start-dot"></span>投げる位置 (青)</span>
+                <span class="legend-item"><span class="legend-dot end-dot"></span>着弾位置 (赤)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 中央列: 全体画面 (上段) & 立ち位置 (下段) -->
+          <div class="preview-col-aim-stand">
+            <!-- 全体画面 (16:9) -->
+            <div class="preview-card aim-card" id="card-aim">
+              <div class="card-header-label">照準・全体画面プレビュー</div>
+              <div class="card-img-box aspect-16-9">
+                <img id="img-aim-view" src="" alt="全体画面プレビュー">
+              </div>
+            </div>
+
+            <!-- 立ち位置 (16:9) -->
+            <div class="preview-card stand-card" id="card-stand">
+              <div class="card-header-label">立ち位置</div>
+              <div class="card-img-box aspect-16-9">
+                <img id="img-stand-view" src="" alt="立ち位置プレビュー">
+              </div>
+            </div>
+          </div>
+
+          <!-- 右列: 特大拡大図 (1:1 正方形 + 中空赤丸) -->
+          <div class="preview-col-zoom" id="card-zoom">
+            <div class="preview-card zoom-card">
+              <div class="card-header-label">拡大図 (照準合わせ位置)</div>
+              <div class="card-img-box aspect-1-1 zoom-canvas-wrap">
+                <img id="img-zoom-view" src="" alt="拡大図プレビュー">
+                <!-- 中空赤丸マーカー -->
+                <div class="aim-target-ring" id="aim-target-ring"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- トースト通知 -->
+  <div id="toast-message" class="toast-message"></div>
+
+  <!-- まとめ画像生成用 隠しCanvas (1430x900px) -->
+  <canvas id="share-canvas" width="1430" height="900" style="display: none;"></canvas>
+
+  <script src="app.js?v=20260920_4"></script>
+</body>
+</html>
