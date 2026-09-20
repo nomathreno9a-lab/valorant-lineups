@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VALORANT 定点アシスタント Webビューア</title>
-  <link rel="stylesheet" href="style.css?v=20260920_4">
+  <link rel="stylesheet" href="style.css?v=20260920_5">
 </head>
 <body>
   <!-- 最上部ヘッダー -->
@@ -16,6 +16,13 @@
       </div>
     </div>
     <div class="header-right">
+      <!-- クラウドデータ更新ボタン（キャッシュ更新） -->
+      <div class="refresh-box">
+        <button id="btn-refresh-cache" class="btn-refresh-action" title="クラウドから最新データを再取得して画面を更新">
+          <span class="btn-icon" id="refresh-icon">&#x21BB;</span>
+          <span id="refresh-btn-text">データ更新</span>
+        </button>
+      </div>
       <!-- マップ・エージェント読み込み（VALORANTログ連携） -->
       <div class="log-reader-box">
         <button id="btn-read-log" class="btn-log-action" title="VALORANTのログファイルを選択して現在マッチを自動取得">
@@ -227,6 +234,6 @@
   <!-- まとめ画像生成用 隠しCanvas (1430x900px) -->
   <canvas id="share-canvas" width="1430" height="900" style="display: none;"></canvas>
 
-  <script src="app.js?v=20260920_4"></script>
+  <script src="app.js?v=20260920_5"></script>
 </body>
 </html>
