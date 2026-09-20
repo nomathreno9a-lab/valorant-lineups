@@ -2250,7 +2250,33 @@
       "crop_y_ratio": 0.8194444444444444,
       "crop_size": 400,
       "updated_at": "2026-09-15 06:44:01"
+    },
+    {
+      "cloud_id": "cl_1789891624205_1",
+      "agent": "ソーヴァ",
+      "map": "ヘイヴン",
+      "map_name": "ヘイヴン",
+      "ability": "E-リコンボルト",
+      "start_loc": "Cロビー",
+      "end_loc": "Cサイト 薪上屋根",
+      "throw_type": "0バウンス | 1チャージ",
+      "notes": "",
+      "author": "yohi",
+      "img_aim": "images/cl_1789891624205_1_img_aim.webp",
+      "img_stand": "images/cl_1789891624205_1_img_stand.webp",
+      "img_zoom": "images/cl_1789891624205_1_img_zoom.webp",
+      "pos_x": 713,
+      "pos_y": 762,
+      "target_x": 426,
+      "target_y": 758,
+      "zoom_pos_x": 200,
+      "zoom_pos_y": 200,
+      "zoom_size": 17,
+      "crop_x_ratio": 0.5,
+      "crop_y_ratio": 0.5,
+      "crop_size": 400,
+      "updated_at": "2026-09-20 17:07:04"
     }
   ],
-  "updated_at": "2026-09-16 09:13:54"
+  "updated_at": "2026-09-20 17:07:04"
 }
