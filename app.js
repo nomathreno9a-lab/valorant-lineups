@@ -95,31 +95,69 @@ async function loadMastersData() {
 }
 
 // 定点データ（lineups_master.json）の読み込み
-async function loadLineupsData() {
+async function loadLineupsData(bypassCache = false) {
   try {
-    const res = await fetch("lineups_master.json");
+    const url = bypassCache ? `lineups_master.json?t=${Date.now()}` : "lineups_master.json";
+    const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       state.allLineups = data.lineups || [];
       applyFilters();
+      return true;
     }
   } catch (err) {
     console.warn("lineups_master.json 読み込みエラー:", err);
     state.allLineups = [];
     applyFilters();
+    return false;
   }
 }
 
-// URLディープリンクのチェック
+// クラウド定点キャッシュの手動更新処理
+async function refreshLineupsCache() {
+  const btn = document.getElementById("btn-refresh-cache");
+  const icon = document.getElementById("refresh-icon");
+  const text = document.getElementById("refresh-btn-text");
+
+  if (btn) btn.disabled = true;
+  if (icon) icon.classList.add("spin-icon");
+  if (text) text.textContent = "更新中...";
+
+  try {
+    const ok = await loadLineupsData(true);
+    if (ok) {
+      // 選択中定点があれば最新データで再選択
+      if (state.selectedLineup) {
+        const selCid = String(state.selectedLineup.cloud_id || "").trim();
+        const reFound = state.allLineups.find(l => String(l.cloud_id || "").trim() === selCid);
+        if (reFound) {
+          selectLineup(reFound);
+        }
+      }
+      showToast(`データを最新に更新しました (全 ${state.allLineups.length} 件)`);
+    } else {
+      showToast("データの更新に失敗しました");
+    }
+  } catch (e) {
+    console.error("refreshLineupsCache error:", e);
+    showToast("データ更新中にエラーが発生しました");
+  } finally {
+    if (btn) btn.disabled = false;
+    if (icon) icon.classList.remove("spin-icon");
+    if (text) text.textContent = "データ更新";
+  }
+}
+
+// URLディープリンクのチェック (cloud_id のみで一意判定)
 function checkUrlDeepLink() {
   const params = new URLSearchParams(window.location.search);
   const targetId = params.get("id");
   if (!targetId || !state.allLineups.length) return;
 
+  const cleanTarget = targetId.replace(/^cloud_/, "").trim();
   const found = state.allLineups.find(l => {
     const cid = String(l.cloud_id || "").trim();
-    const lid = String(l.id || "").trim();
-    return cid === targetId || lid === targetId || `cloud_${cid}` === targetId;
+    return cid === cleanTarget || cid === targetId;
   });
 
   if (found) {
@@ -133,6 +171,8 @@ function checkUrlDeepLink() {
     if (window.innerWidth <= 960) {
       switchMobileTab("detail");
     }
+  } else {
+    showToast("指定された定点が見つかりませんでした");
   }
 }
 
@@ -391,11 +431,28 @@ function setupEventListeners() {
     }
   });
 
-  // フリーワード検索入力
+  // データ更新ボタン (キャッシュバイパス取得)
+  const btnRefresh = document.getElementById("btn-refresh-cache");
+  if (btnRefresh) {
+    btnRefresh.addEventListener("click", refreshLineupsCache);
+  }
+
+  // フリーワード検索入力 (日本語IME変換中のちらつき防止)
   const searchInput = document.getElementById("keyword-search-input");
   const clearBtn = document.getElementById("btn-clear-search");
+  let isComposing = false;
   if (searchInput) {
+    searchInput.addEventListener("compositionstart", () => {
+      isComposing = true;
+    });
+    searchInput.addEventListener("compositionend", () => {
+      isComposing = false;
+      state.filters.keyword = searchInput.value.trim().toLowerCase();
+      if (clearBtn) clearBtn.style.display = state.filters.keyword ? "block" : "none";
+      applyFilters();
+    });
     searchInput.addEventListener("input", () => {
+      if (isComposing) return;
       state.filters.keyword = searchInput.value.trim().toLowerCase();
       if (clearBtn) clearBtn.style.display = state.filters.keyword ? "block" : "none";
       applyFilters();
@@ -514,7 +571,7 @@ function renderLineupCards() {
 
   let html = "";
   state.filteredLineups.forEach(item => {
-    const isSelected = state.selectedLineup && (state.selectedLineup.cloud_id === item.cloud_id || state.selectedLineup.id === item.id);
+    const isSelected = state.selectedLineup && Boolean(item.cloud_id) && (state.selectedLineup.cloud_id === item.cloud_id);
     const activeClass = isSelected ? "active" : "";
 
     const enName = MAP_JA_TO_EN[item.map] || item.map;
@@ -530,7 +587,7 @@ function renderLineupCards() {
     const newBadgeHtml = item.is_new ? `<span class="badge-new">NEW</span>` : "";
 
     html += `
-      <div class="custom-lineup-card ${activeClass}" data-key="${item.cloud_id || item.id}" style="background-image: url('${splashImg}');">
+      <div class="custom-lineup-card ${activeClass}" data-key="${item.cloud_id}" style="background-image: url('${splashImg}');">
         <div class="card-center-texts">
           <div class="card-row-top">
             <span>[${escapeHtml(item.map)}] ${escapeHtml(item.agent)}</span>
@@ -551,7 +608,7 @@ function renderLineupCards() {
   container.querySelectorAll(".custom-lineup-card").forEach(card => {
     card.addEventListener("click", () => {
       const key = card.dataset.key;
-      const target = state.filteredLineups.find(l => (l.cloud_id || l.id) == key);
+      const target = state.filteredLineups.find(l => String(l.cloud_id || "").trim() === key);
       if (target) {
         selectLineup(target);
         if (window.innerWidth <= 960) {
@@ -882,46 +939,59 @@ async function handleShareCurrentLineup() {
 
     await drawShareImageToCanvas(ctx, lineup);
 
-    const targetKey = lineup.cloud_id || lineup.id;
+    const targetKey = lineup.cloud_id;
     const shareUrl = `${window.location.origin}${window.location.pathname}?id=${encodeURIComponent(targetKey)}`;
 
-    canvas.toBlob(async (blob) => {
-      if (!blob) {
-        throw new Error("画像の生成に失敗しました");
-      }
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    if (!blob) {
+      throw new Error("画像の生成に失敗しました");
+    }
 
+    let writeSuccess = false;
+    try {
+      const data = [new ClipboardItem({
+        "image/png": blob,
+        "text/plain": new Blob([shareUrl], { type: "text/plain" })
+      })];
+      await navigator.clipboard.write(data);
+      writeSuccess = true;
+    } catch (e1) {
       try {
-        const data = [new ClipboardItem({
-          "image/png": blob,
-          "text/plain": new Blob([shareUrl], { type: "text/plain" })
-        })];
+        const data = [new ClipboardItem({ "image/png": blob })];
         await navigator.clipboard.write(data);
-      } catch (e1) {
-        try {
-          const data = [new ClipboardItem({ "image/png": blob })];
-          await navigator.clipboard.write(data);
-        } catch (e2) {
-          console.warn("クリップボードAPIフォールバック:", e2);
-        }
+        writeSuccess = true;
+      } catch (e2) {
+        console.warn("画像クリップボード書き込み失敗:", e2);
       }
+    }
 
-      if (btn) {
-        btn.classList.add("success");
-        btn.textContent = "画像＋URLコピー完了！";
-        setTimeout(() => {
-          btn.classList.remove("success");
-          btn.textContent = "共有 (画像+URL)";
-          btn.disabled = false;
-        }, 1500);
+    if (!writeSuccess) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast("URLのみクリップボードにコピーしました（ブラウザが画像直接コピー非対応です）");
+        return;
+      } catch (e3) {
+        showToast("クリップボードにコピーできませんでした");
+        return;
       }
+    }
 
-      showToast("まとめ画像とWeb版URLをクリップボードにコピーしました！");
-    }, "image/png");
+    if (btn) {
+      btn.classList.add("success");
+      btn.textContent = "画像＋URLコピー完了！";
+      setTimeout(() => {
+        btn.classList.remove("success");
+        btn.textContent = "共有 (画像+URL)";
+        btn.disabled = false;
+      }, 1500);
+    }
 
+    showToast("まとめ画像とWeb版URLをクリップボードにコピーしました！");
   } catch (err) {
     console.error("共有エラー:", err);
-    alert("共有処理中にエラーが発生しました: " + err);
-    if (btn) {
+    showToast("共有処理中にエラーが発生しました: " + err);
+  } finally {
+    if (btn && !btn.classList.contains("success")) {
       btn.textContent = "共有 (画像+URL)";
       btn.disabled = false;
     }
@@ -999,20 +1069,23 @@ async function drawShareImageToCanvas(ctx, lineup) {
   const zImg = 742;
   const cardRightW = zImg + 4, cardRightH = zImg + 28;
 
+  // 照準・全体画面プレビュー (アスペクト比維持 contain 描画)
   const c1x = 20, c1y = mainY;
   drawPreviewCardBg(ctx, c1x, c1y, cardLeftW, cardLeftH, "照準・全体画面プレビュー");
   try {
     const aimImg = await loadImage(resolveImageUrl(lineup.img_aim));
-    ctx.drawImage(aimImg, c1x + 2, c1y + 26, wImg, hImg);
+    drawContainedImage(ctx, aimImg, c1x + 2, c1y + 26, wImg, hImg);
   } catch (e) {}
 
+  // 立ち位置 (アスペクト比維持 contain 描画)
   const c2x = 20, c2y = mainY + cardLeftH + 12;
   drawPreviewCardBg(ctx, c2x, c2y, cardLeftW, cardLeftH, "立ち位置");
   try {
     const standImg = await loadImage(resolveImageUrl(lineup.img_stand));
-    ctx.drawImage(standImg, c2x + 2, c2y + 26, wImg, hImg);
+    drawContainedImage(ctx, standImg, c2x + 2, c2y + 26, wImg, hImg);
   } catch (e) {}
 
+  // 拡大図 (照準合わせ位置)
   const c3x = 20 + cardLeftW + 16, c3y = mainY;
   drawPreviewCardBg(ctx, c3x, c3y, cardRightW, cardRightH, "拡大図 (照準合わせ位置)");
   try {
@@ -1020,12 +1093,13 @@ async function drawShareImageToCanvas(ctx, lineup) {
     ctx.drawImage(zoomImg, c3x + 2, c3y + 26, zImg, zImg);
 
     const nw = zoomImg.naturalWidth || 400;
+    const nh = zoomImg.naturalHeight || 400;
     const rawZx = parseFloat(lineup.zoom_pos_x);
     const rawZy = parseFloat(lineup.zoom_pos_y);
     const rawZr = parseFloat(lineup.zoom_size);
 
     const zx = !isNaN(rawZx) ? rawZx : (nw / 2);
-    const zy = !isNaN(rawZy) ? rawZy : (nw / 2);
+    const zy = !isNaN(rawZy) ? rawZy : (nh / 2);
     const zr = !isNaN(rawZr) ? rawZr : 16.0;
 
     const markScale = zImg / nw;
@@ -1039,6 +1113,33 @@ async function drawShareImageToCanvas(ctx, lineup) {
     ctx.lineWidth = 4;
     ctx.stroke();
   } catch (e) {}
+}
+
+// アスペクト比を維持して指定矩形の中央に contain 描画する関数
+function drawContainedImage(ctx, img, dx, dy, dw, dh) {
+  const nw = img.naturalWidth || img.width;
+  const nh = img.naturalHeight || img.height;
+  if (!nw || !nh) return;
+
+  const imgAspect = nw / nh;
+  const boxAspect = dw / dh;
+  let drawW, drawH, ox, oy;
+
+  if (imgAspect > boxAspect) {
+    drawW = dw;
+    drawH = dw / imgAspect;
+    ox = dx;
+    oy = dy + (dh - drawH) / 2;
+  } else {
+    drawH = dh;
+    drawW = dh * imgAspect;
+    ox = dx + (dw - drawW) / 2;
+    oy = dy;
+  }
+
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(dx, dy, dw, dh);
+  ctx.drawImage(img, ox, oy, drawW, drawH);
 }
 
 function drawPreviewCardBg(ctx, x, y, w, h, title) {
@@ -1057,7 +1158,6 @@ function loadImage(src) {
   return new Promise((resolve, reject) => {
     if (!src) return reject(new Error("画像URLが空です"));
     const img = new Image();
-    img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = (e) => reject(e);
     img.src = src;
