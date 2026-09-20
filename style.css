@@ -80,6 +80,48 @@ body {
   gap: 12px;
 }
 
+.refresh-box {
+  display: flex;
+  align-items: center;
+}
+
+.btn-refresh-action {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 1px solid #10b981;
+  color: #34d399;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-refresh-action:hover {
+  background: #059669;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.btn-refresh-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.spin-icon {
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .log-reader-box {
   display: flex;
   align-items: center;
