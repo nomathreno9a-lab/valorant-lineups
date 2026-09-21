@@ -2376,7 +2376,33 @@
       "crop_y_ratio": 0.5,
       "crop_size": 400,
       "updated_at": "2026-09-20 17:15:55"
+    },
+    {
+      "cloud_id": "cl_1789990355267_1",
+      "agent": "ソーヴァ",
+      "map": "ヘイヴン",
+      "map_name": "ヘイヴン",
+      "ability": "Q-ショックボルト",
+      "start_loc": "Cロビー",
+      "end_loc": "Cサイト",
+      "throw_type": "1バウンス | 1チャージ",
+      "notes": "ワイヤー切り",
+      "author": "nomat",
+      "img_aim": "images/cl_1789990355267_1_img_aim.webp",
+      "img_stand": "images/cl_1789990355267_1_img_stand.webp",
+      "img_zoom": "images/cl_1789990355267_1_img_zoom.webp",
+      "pos_x": 702,
+      "pos_y": 743,
+      "target_x": 508,
+      "target_y": 835,
+      "zoom_pos_x": 200,
+      "zoom_pos_y": 200,
+      "zoom_size": 19,
+      "crop_x_ratio": 0.5,
+      "crop_y_ratio": 0.5,
+      "crop_size": 400,
+      "updated_at": "2026-09-21 20:32:35"
     }
   ],
-  "updated_at": "2026-09-20 17:44:13"
+  "updated_at": "2026-09-21 20:32:35"
 }
