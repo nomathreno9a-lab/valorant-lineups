@@ -102,6 +102,7 @@ async function loadLineupsData(bypassCache = false) {
     if (res.ok) {
       const data = await res.json();
       state.allLineups = data.lineups || [];
+      state.allLineups.sort(compareLineups);
       applyFilters();
       return true;
     }
@@ -517,6 +518,51 @@ function setupEventListeners() {
   });
 }
 
+// スキルスロット順定義 (C -> Q -> E -> X)
+const SLOT_ORDER = { 'C': 1, 'Q': 2, 'E': 3, 'X': 4 };
+
+function getSlotRank(abilityStr) {
+  if (!abilityStr) return 99;
+  const s = String(abilityStr).trim();
+  if (s.length >= 2 && s[1] === '-' && SLOT_ORDER[s[0].toUpperCase()]) {
+    return SLOT_ORDER[s[0].toUpperCase()];
+  }
+  if (SLOT_ORDER[s[0].toUpperCase()]) {
+    return SLOT_ORDER[s[0].toUpperCase()];
+  }
+  return 99;
+}
+
+// 階層ソート比較関数 (マップ名50音 ➔ エージェント名50音 ➔ スキル順 ➔ クラウドID昇順)
+function compareLineups(a, b) {
+  // 1. マップ名50音順
+  const mapA = String(a.map || a.map_name || "");
+  const mapB = String(b.map || b.map_name || "");
+  const mapCmp = mapA.localeCompare(mapB, "ja");
+  if (mapCmp !== 0) return mapCmp;
+
+  // 2. エージェント名50音順
+  const agentA = String(a.agent || "");
+  const agentB = String(b.agent || "");
+  const agentCmp = agentA.localeCompare(agentB, "ja");
+  if (agentCmp !== 0) return agentCmp;
+
+  // 3. スキル順 (C -> Q -> E -> X)
+  const rankA = getSlotRank(a.ability);
+  const rankB = getSlotRank(b.ability);
+  if (rankA !== rankB) return rankA - rankB;
+
+  const abA = String(a.ability || "");
+  const abB = String(b.ability || "");
+  const abCmp = abA.localeCompare(abB, "ja");
+  if (abCmp !== 0) return abCmp;
+
+  // 4. クラウドID順 (昇順)
+  const cidA = String(a.cloud_id || "");
+  const cidB = String(b.cloud_id || "");
+  return cidA.localeCompare(cidB);
+}
+
 // フィルター適用
 function applyFilters() {
   const { map, agent, ability, keyword } = state.filters;
@@ -534,6 +580,9 @@ function applyFilters() {
     }
     return true;
   });
+
+  // マップ50音 ➔ エージェント50音 ➔ スキル順 ➔ クラウドID順 でソート
+  state.filteredLineups.sort(compareLineups);
 
   renderLineupCards();
 }
