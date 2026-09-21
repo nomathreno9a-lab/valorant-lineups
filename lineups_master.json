@@ -2558,7 +2558,33 @@
       "crop_y_ratio": 0.5,
       "crop_size": 400,
       "updated_at": "2026-09-21 21:39:05"
+    },
+    {
+      "cloud_id": "cl_1789995107341_8",
+      "agent": "レイズ",
+      "map": "バインド",
+      "map_name": "バインド",
+      "ability": "E-ペイント弾",
+      "start_loc": "シャワー入口",
+      "end_loc": "Aサイト",
+      "throw_type": "走りジャンプ投げ",
+      "notes": "ワイヤー切り 1歩だけ走って投げる",
+      "author": "nomat",
+      "img_aim": "images/cl_1789995107341_8_img_aim.webp",
+      "img_stand": "images/cl_1789995107341_8_img_stand.webp",
+      "img_zoom": "images/cl_1789995107341_8_img_zoom.webp",
+      "pos_x": 887,
+      "pos_y": 589,
+      "target_x": 759,
+      "target_y": 377,
+      "zoom_pos_x": 200,
+      "zoom_pos_y": 200,
+      "zoom_size": 19,
+      "crop_x_ratio": 0.5,
+      "crop_y_ratio": 0.5,
+      "crop_size": 400,
+      "updated_at": "2026-09-21 21:51:47"
     }
   ],
-  "updated_at": "2026-09-21 21:39:05"
+  "updated_at": "2026-09-21 21:51:47"
 }
