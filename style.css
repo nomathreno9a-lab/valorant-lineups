@@ -125,7 +125,8 @@ body {
 .log-reader-box {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  position: relative;
 }
 
 .btn-log-action {
@@ -149,6 +150,133 @@ body {
   box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
+.btn-log-action.watching {
+  border-color: #10b981;
+  color: #34d399;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), #0f172a);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-copy-path-action {
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-copy-path-action:hover {
+  background: #334155;
+  color: #ffffff;
+  border-color: #64748b;
+}
+
+/* インフォメーションマークとツールチップ */
+.info-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #64748b;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: monospace, sans-serif;
+  cursor: help;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.info-icon:hover,
+.info-tooltip-wrap:hover .info-icon {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+.info-tooltip-box {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 310px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+  z-index: 1000;
+  pointer-events: none;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  text-align: left;
+}
+
+.info-tooltip-wrap:hover .info-tooltip-box {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.info-tooltip-box::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  background: #0f172a;
+  border-left: 1px solid #334155;
+  border-top: 1px solid #334155;
+  transform: rotate(45deg);
+}
+
+.info-tooltip-box .tooltip-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 4px;
+}
+
+.info-tooltip-box p {
+  margin-bottom: 6px;
+}
+
+.info-tooltip-box p:last-child {
+  margin-bottom: 0;
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.info-tooltip-box code {
+  background: #1e293b;
+  color: #34d399;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: Consolas, monospace;
+}
+
 .log-status-badge {
   font-size: 11px;
   padding: 4px 8px;
@@ -156,6 +284,7 @@ body {
   background-color: #1e293b;
   color: var(--text-muted);
   border: 1px solid var(--border-color);
+  white-space: nowrap;
 }
 
 .log-status-badge.active {
