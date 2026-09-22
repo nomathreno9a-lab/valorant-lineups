@@ -78,6 +78,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // URLディープリンク（?id=<cloud_id>）のチェック
   checkUrlDeepLink();
+
+  // ログ自動連携の復元チェック
+  initAutoLogOnLoad();
 });
 
 // マスタデータ（masters.json）の読み込み
@@ -468,11 +471,17 @@ function setupEventListeners() {
     });
   }
 
-  // ログ読み込みボタン
+  // ログ自動連携ボタン ＆ パスコピーボタン
   const btnReadLog = document.getElementById("btn-read-log");
+  const btnCopyPath = document.getElementById("btn-copy-log-path");
   const logFileInput = document.getElementById("log-file-input");
-  if (btnReadLog && logFileInput) {
-    btnReadLog.addEventListener("click", () => logFileInput.click());
+  if (btnReadLog) {
+    btnReadLog.addEventListener("click", handleAutoLogButtonClick);
+  }
+  if (btnCopyPath) {
+    btnCopyPath.addEventListener("click", handleCopyLogPath);
+  }
+  if (logFileInput) {
     logFileInput.addEventListener("change", handleLogFileSelect);
   }
 
@@ -897,8 +906,238 @@ function resolveImageUrl(rawPath) {
 }
 
 // ==============================================================================
-// 6. VALORANTログ（ShooterGame.log）の解析
+// 6. VALORANTログ（ShooterGame.log）の自動連携・継続監視 (File System Access API & IndexedDB)
 // ==============================================================================
+let activeLogHandle = null;
+let logWatchTimer = null;
+let lastLogModified = 0;
+let lastMatchedSummary = "";
+
+// IndexedDB によるハンドル永続化
+function openLogDB() {
+  return new Promise((resolve) => {
+    if (!window.indexedDB) {
+      resolve(null);
+      return;
+    }
+    const req = indexedDB.open("ValorantLogStore", 1);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore("handles");
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+}
+
+async function saveSavedLogHandle(handle) {
+  try {
+    const db = await openLogDB();
+    if (!db) return;
+    const tx = db.transaction("handles", "readwrite");
+    tx.objectStore("handles").put(handle, "logHandle");
+  } catch (e) {
+    console.warn("ログハンドルの保存に失敗しました:", e);
+  }
+}
+
+async function getSavedLogHandle() {
+  try {
+    const db = await openLogDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      const tx = db.transaction("handles", "readonly");
+      const req = tx.objectStore("handles").get("logHandle");
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function clearSavedLogHandle() {
+  try {
+    const db = await openLogDB();
+    if (!db) return;
+    const tx = db.transaction("handles", "readwrite");
+    tx.objectStore("handles").delete("logHandle");
+  } catch (e) {}
+}
+
+// パス一発コピー処理
+async function handleCopyLogPath() {
+  const logFolderPath = "%LOCALAPPDATA%\\VALORANT\\Saved\\Logs";
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(logFolderPath);
+    } else {
+      throw new Error("Clipboard API unavailable");
+    }
+    showToast("ログの場所をコピーしました！ファイル選択画面のアドレス欄に貼り付けてください");
+  } catch (err) {
+    const input = document.createElement("textarea");
+    input.value = logFolderPath;
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.appendChild(input);
+    input.select();
+    try {
+      document.execCommand("copy");
+      showToast("ログの場所をコピーしました！アドレス欄に貼り付けてください");
+    } catch (e) {
+      prompt("以下のパスをコピーしてファイル選択画面で貼り付けてください:", logFolderPath);
+    }
+    document.body.removeChild(input);
+  }
+}
+
+// ログ自動連携ボタン押下時の処理
+async function handleAutoLogButtonClick() {
+  // すでに監視中の場合は一時停止
+  if (logWatchTimer) {
+    stopAutoLogWatcher();
+    showToast("ログの自動追従を一時停止しました");
+    return;
+  }
+
+  // File System Access API がサポートされている場合 (Chrome, Edge等)
+  if (typeof window.showOpenFilePicker === "function") {
+    try {
+      let handle = activeLogHandle || (await getSavedLogHandle());
+      let needPicker = true;
+
+      if (handle) {
+        // 保存済みハンドルの権限確認
+        let perm = await handle.queryPermission({ mode: "read" });
+        if (perm !== "granted") {
+          perm = await handle.requestPermission({ mode: "read" });
+        }
+        if (perm === "granted") {
+          try {
+            const testFile = await handle.getFile();
+            needPicker = false;
+            activeLogHandle = handle;
+          } catch (err) {
+            needPicker = true;
+            await clearSavedLogHandle();
+          }
+        }
+      }
+
+      if (needPicker) {
+        showToast("ShooterGame.log を選択してください");
+        const handles = await window.showOpenFilePicker({
+          types: [
+            {
+              description: "VALORANT Log File (ShooterGame.log)",
+              accept: { "text/plain": [".log", ".txt"] }
+            }
+          ],
+          multiple: false
+        });
+        if (!handles || handles.length === 0) return;
+        activeLogHandle = handles[0];
+        await saveSavedLogHandle(activeLogHandle);
+      }
+
+      await startAutoLogWatcher(activeLogHandle);
+    } catch (e) {
+      if (e.name !== "AbortError") {
+        console.error("ログ連携エラー:", e);
+        showToast("ログファイル連携がキャンセルまたは失敗しました");
+      }
+    }
+  } else {
+    // 非対応ブラウザ（iOS Safari等）は従来のファイル選択にフォールバック
+    const input = document.getElementById("log-file-input");
+    if (input) input.click();
+  }
+}
+
+// 監視開始処理
+async function startAutoLogWatcher(handle) {
+  if (!handle) return;
+  activeLogHandle = handle;
+  updateLogUIStatus(true, "自動追従中: ログ待機中");
+
+  // 初回読み込み
+  try {
+    const file = await handle.getFile();
+    lastLogModified = file.lastModified;
+    const text = await file.text();
+    parseValorantLog(text, false);
+  } catch (e) {
+    console.warn("初回ログ読み込みエラー:", e);
+  }
+
+  // 2秒ごとの定期ポーリング
+  if (logWatchTimer) clearInterval(logWatchTimer);
+  logWatchTimer = setInterval(async () => {
+    try {
+      if (!activeLogHandle) return;
+      const file = await activeLogHandle.getFile();
+      if (file.lastModified !== lastLogModified) {
+        lastLogModified = file.lastModified;
+        const text = await file.text();
+        parseValorantLog(text, true); // true = 差分更新（静かに適用）
+      }
+    } catch (e) {
+      console.warn("ログ自動更新チェックエラー:", e);
+    }
+  }, 2000);
+}
+
+// 監視停止処理
+function stopAutoLogWatcher() {
+  if (logWatchTimer) {
+    clearInterval(logWatchTimer);
+    logWatchTimer = null;
+  }
+  updateLogUIStatus(false, "未接続");
+}
+
+// UI表示の更新
+function updateLogUIStatus(isWatching, statusText) {
+  const btn = document.getElementById("btn-read-log");
+  const btnText = document.getElementById("log-btn-text");
+  const badge = document.getElementById("log-status-badge");
+
+  if (btn) {
+    btn.classList.toggle("watching", isWatching);
+    if (btnText) {
+      btnText.textContent = isWatching ? "自動追従中" : "ログ自動連携";
+    }
+  }
+
+  if (badge) {
+    badge.textContent = statusText;
+    badge.classList.toggle("active", isWatching);
+  }
+}
+
+// ページ起動時の自動復元チェック
+async function initAutoLogOnLoad() {
+  if (typeof window.showOpenFilePicker !== "function") {
+    return;
+  }
+  const handle = await getSavedLogHandle();
+  if (handle) {
+    activeLogHandle = handle;
+    const badge = document.getElementById("log-status-badge");
+    if (badge) {
+      badge.textContent = "前回連携あり (クリックで再開)";
+    }
+    // すでに許可されている場合は自動で監視を開始
+    try {
+      const perm = await handle.queryPermission({ mode: "read" });
+      if (perm === "granted") {
+        await startAutoLogWatcher(handle);
+      }
+    } catch (e) {}
+  }
+}
+
+// 通常ファイル選択（非対応ブラウザ用フォールバック）
 function handleLogFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -906,15 +1145,15 @@ function handleLogFileSelect(e) {
   const reader = new FileReader();
   reader.onload = (event) => {
     const content = event.target.result;
-    parseValorantLog(content);
+    parseValorantLog(content, false);
   };
   reader.readAsText(file);
 }
 
-function parseValorantLog(logText) {
+function parseValorantLog(logText, isQuiet = false) {
   const badge = document.getElementById("log-status-badge");
   if (!logText) {
-    showToast("ログファイルが空です");
+    if (!isQuiet) showToast("ログファイルが空です");
     return;
   }
 
@@ -951,6 +1190,10 @@ function parseValorantLog(logText) {
   }
 
   if (foundMapJa || foundAgentJa) {
+    const matchKey = `${foundMapJa || ""}_${foundAgentJa || ""}`;
+    const hasChanged = matchKey !== lastMatchedSummary;
+    lastMatchedSummary = matchKey;
+
     if (foundMapJa) state.filters.map = foundMapJa;
     if (foundAgentJa) {
       state.filters.agent = foundAgentJa;
@@ -959,14 +1202,18 @@ function parseValorantLog(logText) {
     updateSlotsDisplay();
     applyFilters();
 
-    const statusText = `現在マッチ: ${foundMapJa || "マップ未定"} - ${foundAgentJa || "キャラ未定"}`;
+    const statusText = `自動追従中: ${foundMapJa || "マップ未定"} - ${foundAgentJa || "キャラ未定"}`;
     if (badge) {
       badge.textContent = statusText;
       badge.classList.add("active");
     }
-    showToast(`${statusText} を適用しました`);
+    if (!isQuiet || hasChanged) {
+      showToast(`${foundMapJa || "マップ"} - ${foundAgentJa || "キャラ"} を自動反映しました`);
+    }
   } else {
-    showToast("ログから有効な対戦データを検出できませんでした");
+    if (!isQuiet) {
+      showToast("ログから有効な対戦データを検出できませんでした");
+    }
   }
 }
 
