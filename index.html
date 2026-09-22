@@ -23,14 +23,27 @@
           <span id="refresh-btn-text">データ更新</span>
         </button>
       </div>
-      <!-- マップ・エージェント読み込み（VALORANTログ連携） -->
+      <!-- マップ・エージェント読み込み（VALORANTログ自動連携） -->
       <div class="log-reader-box">
-        <button id="btn-read-log" class="btn-log-action" title="VALORANTのログファイルを選択して現在マッチを自動取得">
-          <span class="btn-icon">&#x21BB;</span>
-          マップ・エージェント読み込み
+        <button id="btn-read-log" class="btn-log-action" title="VALORANTのログファイルを連携して現在マッチを自動追従">
+          <span class="btn-icon" id="log-btn-icon">&#x21BB;</span>
+          <span id="log-btn-text">ログ自動連携</span>
         </button>
+        <button id="btn-copy-log-path" class="btn-copy-path-action" title="ファイル選択画面で貼り付けるためのログフォルダパスをコピー">
+          場所をコピー
+        </button>
+        <div class="info-tooltip-wrap">
+          <span class="info-icon" tabindex="0">i</span>
+          <div class="info-tooltip-box">
+            <div class="tooltip-title">ログ自動連携について</div>
+            <p><strong>対応環境:</strong> PCの Google Chrome / Microsoft Edge</p>
+            <p><strong>初回操作:</strong> 「場所をコピー」を押した後、「ログ自動連携」を押してアドレス欄に貼り付け、<code>ShooterGame.log</code> を選択してください。</p>
+            <p><strong>2回目以降:</strong> ファイル選択画面を開くことなく、ワンクリックで自動接続・リアルタイム監視が再開されます。</p>
+            <p>※スマホ等の非対応環境では通常のファイル選択として動作します。<br>※ブラウザ内ローカルだけで動作するため、複数人で利用しても一切干渉しません。</p>
+          </div>
+        </div>
         <input type="file" id="log-file-input" accept=".log,.txt" style="display: none;">
-        <span id="log-status-badge" class="log-status-badge">ログ待機中</span>
+        <span id="log-status-badge" class="log-status-badge">未接続</span>
       </div>
     </div>
   </header>
