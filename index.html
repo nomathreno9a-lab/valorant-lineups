@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VALORANT 定点アシスタント Webビューア</title>
-  <link rel="stylesheet" href="style.css?v=20260920_5">
+  <link rel="stylesheet" href="style.css?v=20260926_2">
 </head>
 <body>
   <!-- 最上部ヘッダー -->
@@ -126,6 +126,17 @@
 
     <!-- 左カラム: 定点一覧リスト（上下2分割） -->
     <aside class="sidebar-lineup-list" id="sidebar-lineup-list">
+      <!-- マップ未選択時の案内プレースホルダー -->
+      <div class="overview-map-placeholder" id="overview-map-placeholder">
+        <div class="placeholder-header">
+          <span class="overview-title">全体ミニマップ</span>
+        </div>
+        <div class="placeholder-body">
+          <div class="placeholder-icon">&#x25CE;</div>
+          <div class="placeholder-text">上のフィルターから「マップ」を選択すると、ここに全体ミニマップと定点ピンが表示されます</div>
+        </div>
+      </div>
+
       <!-- 上半分: マップ全体ミニマップ（マップフィルター選択時のみ表示） -->
       <div class="overview-map-section" id="overview-map-section" style="display: none;">
         <div class="overview-map-header">
@@ -276,6 +287,6 @@
   <!-- まとめ画像生成用 隠しCanvas (1430x900px) -->
   <canvas id="share-canvas" width="1430" height="900" style="display: none;"></canvas>
 
-  <script src="app.js?v=20260920_5"></script>
+  <script src="app.js?v=20260926_2"></script>
 </body>
 </html>
