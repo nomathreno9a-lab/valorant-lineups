@@ -1651,10 +1651,15 @@ function setupOverviewMinimapEvents() {
   // ドラッグによるパン操作
   viewport.addEventListener("mousedown", (e) => {
     if (e.target.closest(".overview-pin")) return;
+    e.preventDefault();
     overviewMapState.isDragging = true;
     overviewMapState.dragStartX = e.clientX - overviewMapState.panX;
     overviewMapState.dragStartY = e.clientY - overviewMapState.panY;
     viewport.classList.add("is-dragging");
+  });
+
+  viewport.addEventListener("dragstart", (e) => {
+    e.preventDefault();
   });
 
   window.addEventListener("mousemove", (e) => {
@@ -1734,10 +1739,15 @@ function setupDetailMinimapEvents() {
   // ドラッグによるパン操作
   viewport.addEventListener("mousedown", (e) => {
     if (e.target.closest(".btn-side-toggle")) return;
+    e.preventDefault();
     detailMapState.isDragging = true;
     detailMapState.dragStartX = e.clientX - detailMapState.panX;
     detailMapState.dragStartY = e.clientY - detailMapState.panY;
     viewport.classList.add("is-dragging");
+  });
+
+  viewport.addEventListener("dragstart", (e) => {
+    e.preventDefault();
   });
 
   window.addEventListener("mousemove", (e) => {
