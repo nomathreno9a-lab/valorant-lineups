@@ -1660,15 +1660,18 @@ function updateOverviewMinimap() {
   if (!section || !imgMap || !pinsContainer || !lineSvg) return;
 
   const currentMap = state.filters.map;
+  const placeholder = document.getElementById("overview-map-placeholder");
 
-  // マップ未選択（全マップ）の場合は非表示
+  // マップ未選択（全マップ）の場合は案内を表示し、全体ミニマップは非表示
   if (!currentMap) {
     section.style.display = "none";
+    if (placeholder) placeholder.style.display = "flex";
     overviewMapState.currentMap = null;
     return;
   }
 
-  // 表示
+  // マップ選択時は案内を非表示にし、全体ミニマップを表示
+  if (placeholder) placeholder.style.display = "none";
   section.style.display = "flex";
   if (mapNameBadge) mapNameBadge.textContent = currentMap;
 
