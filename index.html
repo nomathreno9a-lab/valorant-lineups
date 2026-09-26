@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VALORANT 定点アシスタント Webビューア</title>
-  <link rel="stylesheet" href="style.css?v=20260926_2">
+  <link rel="stylesheet" href="style.css?v=20260926_3">
 </head>
 <body>
   <!-- 最上部ヘッダー -->
@@ -229,6 +229,20 @@
               </div>
               <div class="card-img-box aspect-1-1 minimap-viewport" id="minimap-viewport">
                 <img id="img-minimap-view" src="" alt="ミニマップ">
+                <!-- 右ペイン用 矢印SVGレイヤー -->
+                <svg class="detail-minimap-arrow-svg" id="detail-minimap-arrow-svg" style="display: none;">
+                  <defs>
+                    <linearGradient id="detail-arrow-grad" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stop-color="#0ea5e9" />
+                      <stop offset="100%" stop-color="#ff4655" />
+                    </linearGradient>
+                    <marker id="detail-arrow-head" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ff4655" stroke="#ffffff" stroke-width="0.8" />
+                    </marker>
+                  </defs>
+                  <line id="detail-arrow-glow" x1="0" y1="0" x2="0" y2="0" />
+                  <line id="detail-arrow-line" x1="0" y1="0" x2="0" y2="0" marker-end="url(#detail-arrow-head)" />
+                </svg>
                 <!-- 青ピン（立ち位置） -->
                 <div class="minimap-pin pin-start" id="pin-start-marker" style="display: none;" title="投げる位置">
                   <span class="pin-badge-text">投げる</span>
@@ -287,6 +301,6 @@
   <!-- まとめ画像生成用 隠しCanvas (1430x900px) -->
   <canvas id="share-canvas" width="1430" height="900" style="display: none;"></canvas>
 
-  <script src="app.js?v=20260926_2"></script>
+  <script src="app.js?v=20260926_3"></script>
 </body>
 </html>
