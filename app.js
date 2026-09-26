@@ -519,6 +519,8 @@ function setupEventListeners() {
 
   // 全体ミニマップ（上半分）のズーム＆パンイベント登録
   setupOverviewMinimapEvents();
+  // 定点情報ミニマップのズーム＆パンイベント登録
+  setupDetailMinimapEvents();
 
   // ウィンドウリサイズ時にピンと赤丸の位置を再計算
   window.addEventListener("resize", () => {
@@ -744,6 +746,7 @@ function selectLineup(lineup) {
 
   // 2. ミニマップおよび青・赤ピンの更新
   updateMinimapPins(lineup);
+  resetDetailMinimapZoom();
 
   if (window.innerWidth <= 960) {
     updateMobileImageVisibility();
@@ -1617,9 +1620,6 @@ const overviewMapState = {
 function setupOverviewMinimapEvents() {
   const viewport = document.getElementById("overview-map-viewport");
   const stage = document.getElementById("overview-map-stage");
-  const btnIn = document.getElementById("btn-zoom-in");
-  const btnOut = document.getElementById("btn-zoom-out");
-  const btnReset = document.getElementById("btn-zoom-reset");
   if (!viewport || !stage) return;
 
   const applyTransform = () => {
@@ -1650,7 +1650,7 @@ function setupOverviewMinimapEvents() {
 
   // ドラッグによるパン操作
   viewport.addEventListener("mousedown", (e) => {
-    if (e.target.closest(".overview-pin") || e.target.closest(".btn-map-control")) return;
+    if (e.target.closest(".overview-pin")) return;
     overviewMapState.isDragging = true;
     overviewMapState.dragStartX = e.clientX - overviewMapState.panX;
     overviewMapState.dragStartY = e.clientY - overviewMapState.panY;
@@ -1671,34 +1671,96 @@ function setupOverviewMinimapEvents() {
     }
   });
 
-  // ズームボタン
-  if (btnIn) {
-    btnIn.addEventListener("click", () => {
-      overviewMapState.scale = Math.min(overviewMapState.scale * 1.25, 4.0);
-      applyTransform();
-    });
-  }
-  if (btnOut) {
-    btnOut.addEventListener("click", () => {
-      overviewMapState.scale = Math.max(overviewMapState.scale / 1.25, 1.0);
-      if (overviewMapState.scale === 1.0) {
-        overviewMapState.panX = 0;
-        overviewMapState.panY = 0;
-      }
-      applyTransform();
-    });
-  }
-  if (btnReset) {
-    btnReset.addEventListener("click", () => {
-      overviewMapState.scale = 1.0;
-      overviewMapState.panX = 0;
-      overviewMapState.panY = 0;
-      applyTransform();
-    });
-  }
+  // ダブルクリックで初期倍率に戻す
+  viewport.addEventListener("dblclick", () => {
+    overviewMapState.scale = 1.0;
+    overviewMapState.panX = 0;
+    overviewMapState.panY = 0;
+    applyTransform();
+  });
 }
 
-// 全体ミニマップのレンダリング・ピン配置
+// ==============================================================================
+// 10-2. 定点詳細プレビュー: 定点情報ミニマップのズーム＆パン操作
+// ==============================================================================
+const detailMapState = {
+  scale: 1.0,
+  panX: 0,
+  panY: 0,
+  isDragging: false,
+  dragStartX: 0,
+  dragStartY: 0
+};
+
+function resetDetailMinimapZoom() {
+  detailMapState.scale = 1.0;
+  detailMapState.panX = 0;
+  detailMapState.panY = 0;
+  const stage = document.getElementById("detail-minimap-stage");
+  if (stage) stage.style.transform = "none";
+}
+
+function setupDetailMinimapEvents() {
+  const viewport = document.getElementById("minimap-viewport");
+  const stage = document.getElementById("detail-minimap-stage");
+  if (!viewport || !stage) return;
+
+  const applyTransform = () => {
+    stage.style.transform = `translate(${detailMapState.panX}px, ${detailMapState.panY}px) scale(${detailMapState.scale})`;
+  };
+
+  // ホイールスクロールによるズーム
+  viewport.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+    const newScale = Math.min(Math.max(detailMapState.scale * zoomFactor, 1.0), 4.0);
+
+    if (newScale === 1.0) {
+      detailMapState.scale = 1.0;
+      detailMapState.panX = 0;
+      detailMapState.panY = 0;
+    } else {
+      detailMapState.panX = mouseX - (mouseX - detailMapState.panX) * (newScale / detailMapState.scale);
+      detailMapState.panY = mouseY - (mouseY - detailMapState.panY) * (newScale / detailMapState.scale);
+      detailMapState.scale = newScale;
+    }
+    applyTransform();
+  }, { passive: false });
+
+  // ドラッグによるパン操作
+  viewport.addEventListener("mousedown", (e) => {
+    if (e.target.closest(".btn-side-toggle")) return;
+    detailMapState.isDragging = true;
+    detailMapState.dragStartX = e.clientX - detailMapState.panX;
+    detailMapState.dragStartY = e.clientY - detailMapState.panY;
+    viewport.classList.add("is-dragging");
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!detailMapState.isDragging) return;
+    detailMapState.panX = e.clientX - detailMapState.dragStartX;
+    detailMapState.panY = e.clientY - detailMapState.dragStartY;
+    applyTransform();
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (detailMapState.isDragging) {
+      detailMapState.isDragging = false;
+      viewport.classList.remove("is-dragging");
+    }
+  });
+
+  // ダブルクリックで初期倍率に戻す
+  viewport.addEventListener("dblclick", () => {
+    resetDetailMinimapZoom();
+  });
+}
+
+// 全体ミニマップのレンダリング・ピン配置（左右完全同期アニメーション対応）
 function updateOverviewMinimap() {
   const section = document.getElementById("overview-map-section");
   const imgMap = document.getElementById("img-overview-map");
@@ -1728,12 +1790,14 @@ function updateOverviewMinimap() {
   const enName = MAP_JA_TO_EN[currentMap] || currentMap;
   const targetSrc = `assets/maps/${enName}.png`;
 
-  if (overviewMapState.currentMap !== currentMap) {
+  const mapChanged = (overviewMapState.currentMap !== currentMap);
+  if (mapChanged) {
     overviewMapState.currentMap = currentMap;
     overviewMapState.scale = 1.0;
     overviewMapState.panX = 0;
     overviewMapState.panY = 0;
     if (stage) stage.style.transform = "none";
+    pinsContainer.innerHTML = "";
   }
 
   if (imgMap.getAttribute("src") !== targetSrc) {
@@ -1760,9 +1824,14 @@ function updateOverviewMinimap() {
 
   lineSvg.style.width = `${vpW}px`;
   lineSvg.style.height = `${vpH}px`;
-
-  pinsContainer.innerHTML = "";
   lineSvg.innerHTML = "";
+
+  // 既存のピン要素を取得（マップが変わらない場合は再利用してCSSトランジションで滑らかにアニメーション移動）
+  const existingPins = new Map();
+  pinsContainer.querySelectorAll(".overview-pin").forEach(pinEl => {
+    existingPins.set(pinEl.dataset.key, pinEl);
+  });
+  const usedKeys = new Set();
 
   const activeKey = state.selectedLineup ? (state.selectedLineup.cloud_id || state.selectedLineup.id) : null;
 
@@ -1777,42 +1846,75 @@ function updateOverviewMinimap() {
     const pinX = offsetX + (dispStart.x / 1023.0) * size;
     const pinY = offsetY + (dispStart.y / 1023.0) * size;
 
-    const pin = document.createElement("div");
-    pin.className = "overview-pin";
-    const itemKey = item.cloud_id || item.id;
-    if (activeKey && itemKey === activeKey) {
-      pin.classList.add("is-active");
-    }
+    const itemKey = String(item.cloud_id || item.id);
+    usedKeys.add(itemKey);
 
-    pin.style.left = `${pinX.toFixed(1)}px`;
-    pin.style.top = `${pinY.toFixed(1)}px`;
-    pin.dataset.key = itemKey;
-    pin.title = `${item.agent || ""} - ${item.ability || ""}`;
-
-    // ホバー時に濃く強調 ＆ 着弾位置への直線描画（着弾位置にピンは置かない）
-    pin.addEventListener("mouseenter", () => {
-      showOverviewHoverLine(item, pinX, pinY, size, offsetX, offsetY, currentRot);
-      showOverviewTooltip(item, pin);
-    });
-
-    pin.addEventListener("mouseleave", () => {
-      clearOverviewHoverLine();
-      hideOverviewTooltip();
-    });
-
-    // クリックで該当定点を選択
-    pin.addEventListener("click", (e) => {
-      e.stopPropagation();
-      selectLineup(item);
-
-      // 下半分のカード一覧で該当カードへスクロール
-      const card = document.querySelector(`.custom-lineup-card[data-key="${itemKey}"]`);
-      if (card) {
-        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    let pin = existingPins.get(itemKey);
+    if (pin) {
+      // 既存ピンがある場合は座標を更新（CSS transitionで定点情報側と完全に同期して滑らかに移動！）
+      pin.style.left = `${pinX.toFixed(1)}px`;
+      pin.style.top = `${pinY.toFixed(1)}px`;
+      if (activeKey && itemKey === String(activeKey)) {
+        pin.classList.add("is-active");
+      } else {
+        pin.classList.remove("is-active");
       }
-    });
+      if (pin._updateData) {
+        pin._updateData(pinX, pinY, currentRot);
+      }
+    } else {
+      pin = document.createElement("div");
+      pin.className = "overview-pin";
+      if (activeKey && itemKey === String(activeKey)) {
+        pin.classList.add("is-active");
+      }
 
-    pinsContainer.appendChild(pin);
+      pin.style.left = `${pinX.toFixed(1)}px`;
+      pin.style.top = `${pinY.toFixed(1)}px`;
+      pin.dataset.key = itemKey;
+      pin.title = `${item.agent || ""} - ${item.ability || ""}`;
+
+      let curX = pinX;
+      let curY = pinY;
+      let curRot = currentRot;
+      pin._updateData = (nx, ny, nRot) => {
+        curX = nx;
+        curY = ny;
+        curRot = nRot;
+      };
+
+      // ホバー時に濃く強調 ＆ 着弾位置への直線描画（着弾位置にピンは置かない）
+      pin.addEventListener("mouseenter", () => {
+        showOverviewHoverLine(item, curX, curY, size, offsetX, offsetY, curRot);
+        showOverviewTooltip(item, pin);
+      });
+
+      pin.addEventListener("mouseleave", () => {
+        clearOverviewHoverLine();
+        hideOverviewTooltip();
+      });
+
+      // クリックで該当定点を選択
+      pin.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectLineup(item);
+
+        // 下半分のカード一覧で該当カードへスクロール
+        const card = document.querySelector(`.custom-lineup-card[data-key="${itemKey}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+
+      pinsContainer.appendChild(pin);
+    }
+  });
+
+  // 使われなくなったピンは削除
+  existingPins.forEach((pinEl, key) => {
+    if (!usedKeys.has(key)) {
+      pinEl.remove();
+    }
   });
 }
 
