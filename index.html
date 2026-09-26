@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VALORANT 定点アシスタント Webビューア</title>
-  <link rel="stylesheet" href="style.css?v=20260926_3">
+  <link rel="stylesheet" href="style.css?v=20260926_4">
 </head>
 <body>
   <!-- 最上部ヘッダー -->
@@ -144,11 +144,6 @@
             <span class="overview-title">全体ミニマップ</span>
             <span class="overview-map-name" id="overview-map-name"></span>
           </div>
-          <div class="overview-controls">
-            <button type="button" class="btn-map-control" id="btn-zoom-in" title="拡大">+</button>
-            <button type="button" class="btn-map-control" id="btn-zoom-out" title="縮小">-</button>
-            <button type="button" class="btn-map-control" id="btn-zoom-reset" title="初期倍率に戻す">&#x21bb;</button>
-          </div>
         </div>
         <div class="overview-map-viewport" id="overview-map-viewport">
           <div class="overview-map-stage" id="overview-map-stage">
@@ -228,28 +223,26 @@
                 </div>
               </div>
               <div class="card-img-box aspect-1-1 minimap-viewport" id="minimap-viewport">
-                <img id="img-minimap-view" src="" alt="ミニマップ">
-                <!-- 右ペイン用 矢印SVGレイヤー -->
-                <svg class="detail-minimap-arrow-svg" id="detail-minimap-arrow-svg" style="display: none;">
-                  <defs>
-                    <linearGradient id="detail-arrow-grad" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stop-color="#0ea5e9" />
-                      <stop offset="100%" stop-color="#ff4655" />
-                    </linearGradient>
-                    <marker id="detail-arrow-head" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ff4655" stroke="#ffffff" stroke-width="0.8" />
-                    </marker>
-                  </defs>
-                  <line id="detail-arrow-glow" x1="0" y1="0" x2="0" y2="0" />
-                  <line id="detail-arrow-line" x1="0" y1="0" x2="0" y2="0" marker-end="url(#detail-arrow-head)" />
-                </svg>
-                <!-- 青ピン（立ち位置） -->
-                <div class="minimap-pin pin-start" id="pin-start-marker" style="display: none;" title="投げる位置">
-                  <span class="pin-badge-text">投げる</span>
-                </div>
-                <!-- 赤ピン（着弾位置） -->
-                <div class="minimap-pin pin-end" id="pin-end-marker" style="display: none;" title="着弾位置">
-                  <span class="pin-badge-text">着弾</span>
+                <div class="detail-minimap-stage" id="detail-minimap-stage">
+                  <img id="img-minimap-view" src="" alt="ミニマップ">
+                  <!-- 右ペイン用 矢印SVGレイヤー -->
+                  <svg class="detail-minimap-arrow-svg" id="detail-minimap-arrow-svg" style="display: none;">
+                    <defs>
+                      <linearGradient id="detail-arrow-grad" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#0ea5e9" />
+                        <stop offset="100%" stop-color="#ff4655" />
+                      </linearGradient>
+                      <marker id="detail-arrow-head" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ff4655" stroke="#ffffff" stroke-width="0.8" />
+                      </marker>
+                    </defs>
+                    <line id="detail-arrow-glow" x1="0" y1="0" x2="0" y2="0" />
+                    <line id="detail-arrow-line" x1="0" y1="0" x2="0" y2="0" marker-end="url(#detail-arrow-head)" />
+                  </svg>
+                  <!-- 青ピン（立ち位置） -->
+                  <div class="minimap-pin pin-start" id="pin-start-marker" style="display: none;" title="投げる位置"></div>
+                  <!-- 赤ピン（着弾位置） -->
+                  <div class="minimap-pin pin-end" id="pin-end-marker" style="display: none;" title="着弾位置"></div>
                 </div>
               </div>
               <!-- 凡例バー -->
@@ -301,6 +294,6 @@
   <!-- まとめ画像生成用 隠しCanvas (1430x900px) -->
   <canvas id="share-canvas" width="1430" height="900" style="display: none;"></canvas>
 
-  <script src="app.js?v=20260926_3"></script>
+  <script src="app.js?v=20260926_4"></script>
 </body>
 </html>
