@@ -517,12 +517,16 @@ function setupEventListeners() {
     btnSideDef.addEventListener("click", () => setMapSide("def"));
   }
 
+  // 全体ミニマップ（上半分）のズーム＆パンイベント登録
+  setupOverviewMinimapEvents();
+
   // ウィンドウリサイズ時にピンと赤丸の位置を再計算
   window.addEventListener("resize", () => {
     if (state.selectedLineup) {
       updateMinimapPins(state.selectedLineup);
       updateZoomRing(state.selectedLineup);
     }
+    updateOverviewMinimap();
     updateMobileImageVisibility();
   });
 }
@@ -594,6 +598,7 @@ function applyFilters() {
   state.filteredLineups.sort(compareLineups);
 
   renderLineupCards();
+  updateOverviewMinimap();
 }
 
 // HTML特殊文字エスケープ
@@ -686,6 +691,11 @@ function selectLineup(lineup) {
   // カードのアクティブ状態更新
   document.querySelectorAll(".custom-lineup-card").forEach(card => {
     card.classList.toggle("active", card.dataset.key == (lineup.cloud_id || lineup.id));
+  });
+
+  // 全体ミニマップのアクティブピン更新
+  document.querySelectorAll(".overview-pin").forEach(pin => {
+    pin.classList.toggle("is-active", pin.dataset.key == (lineup.cloud_id || lineup.id));
   });
 
   const emptyBox = document.getElementById("preview-empty-state");
@@ -1539,4 +1549,274 @@ function showToast(message) {
   setTimeout(() => {
     toast.classList.remove("show");
   }, 2200);
+}
+
+// ==============================================================================
+// 10. 左カラム上半分: マップ全体インタラクティブミニマップ
+// ==============================================================================
+const overviewMapState = {
+  scale: 1.0,
+  panX: 0,
+  panY: 0,
+  isDragging: false,
+  dragStartX: 0,
+  dragStartY: 0,
+  currentMap: null
+};
+
+function setupOverviewMinimapEvents() {
+  const viewport = document.getElementById("overview-map-viewport");
+  const stage = document.getElementById("overview-map-stage");
+  const btnIn = document.getElementById("btn-zoom-in");
+  const btnOut = document.getElementById("btn-zoom-out");
+  const btnReset = document.getElementById("btn-zoom-reset");
+  if (!viewport || !stage) return;
+
+  const applyTransform = () => {
+    stage.style.transform = `translate(${overviewMapState.panX}px, ${overviewMapState.panY}px) scale(${overviewMapState.scale})`;
+  };
+
+  // ホイールスクロールによるズーム
+  viewport.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+    const newScale = Math.min(Math.max(overviewMapState.scale * zoomFactor, 1.0), 4.0);
+
+    if (newScale === 1.0) {
+      overviewMapState.scale = 1.0;
+      overviewMapState.panX = 0;
+      overviewMapState.panY = 0;
+    } else {
+      overviewMapState.panX = mouseX - (mouseX - overviewMapState.panX) * (newScale / overviewMapState.scale);
+      overviewMapState.panY = mouseY - (mouseY - overviewMapState.panY) * (newScale / overviewMapState.scale);
+      overviewMapState.scale = newScale;
+    }
+    applyTransform();
+  }, { passive: false });
+
+  // ドラッグによるパン操作
+  viewport.addEventListener("mousedown", (e) => {
+    if (e.target.closest(".overview-pin") || e.target.closest(".btn-map-control")) return;
+    overviewMapState.isDragging = true;
+    overviewMapState.dragStartX = e.clientX - overviewMapState.panX;
+    overviewMapState.dragStartY = e.clientY - overviewMapState.panY;
+    viewport.classList.add("is-dragging");
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!overviewMapState.isDragging) return;
+    overviewMapState.panX = e.clientX - overviewMapState.dragStartX;
+    overviewMapState.panY = e.clientY - overviewMapState.dragStartY;
+    applyTransform();
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (overviewMapState.isDragging) {
+      overviewMapState.isDragging = false;
+      viewport.classList.remove("is-dragging");
+    }
+  });
+
+  // ズームボタン
+  if (btnIn) {
+    btnIn.addEventListener("click", () => {
+      overviewMapState.scale = Math.min(overviewMapState.scale * 1.25, 4.0);
+      applyTransform();
+    });
+  }
+  if (btnOut) {
+    btnOut.addEventListener("click", () => {
+      overviewMapState.scale = Math.max(overviewMapState.scale / 1.25, 1.0);
+      if (overviewMapState.scale === 1.0) {
+        overviewMapState.panX = 0;
+        overviewMapState.panY = 0;
+      }
+      applyTransform();
+    });
+  }
+  if (btnReset) {
+    btnReset.addEventListener("click", () => {
+      overviewMapState.scale = 1.0;
+      overviewMapState.panX = 0;
+      overviewMapState.panY = 0;
+      applyTransform();
+    });
+  }
+}
+
+// 全体ミニマップのレンダリング・ピン配置
+function updateOverviewMinimap() {
+  const section = document.getElementById("overview-map-section");
+  const imgMap = document.getElementById("img-overview-map");
+  const pinsContainer = document.getElementById("overview-pins-container");
+  const lineSvg = document.getElementById("overview-line-svg");
+  const mapNameBadge = document.getElementById("overview-map-name");
+  const viewport = document.getElementById("overview-map-viewport");
+  const stage = document.getElementById("overview-map-stage");
+  if (!section || !imgMap || !pinsContainer || !lineSvg) return;
+
+  const currentMap = state.filters.map;
+
+  // マップ未選択（全マップ）の場合は非表示
+  if (!currentMap) {
+    section.style.display = "none";
+    overviewMapState.currentMap = null;
+    return;
+  }
+
+  // 表示
+  section.style.display = "flex";
+  if (mapNameBadge) mapNameBadge.textContent = currentMap;
+
+  const enName = MAP_JA_TO_EN[currentMap] || currentMap;
+  const targetSrc = `assets/maps/${enName}.png`;
+
+  if (overviewMapState.currentMap !== currentMap) {
+    overviewMapState.currentMap = currentMap;
+    overviewMapState.scale = 1.0;
+    overviewMapState.panX = 0;
+    overviewMapState.panY = 0;
+    if (stage) stage.style.transform = "none";
+  }
+
+  if (imgMap.getAttribute("src") !== targetSrc) {
+    imgMap.src = targetSrc;
+  }
+
+  const vpRect = viewport.getBoundingClientRect();
+  const vpW = vpRect.width || 350;
+  const vpH = vpRect.height || 260;
+  const size = Math.min(vpW, vpH) - 10;
+  const offsetX = Math.max(0, (vpW - size) / 2);
+  const offsetY = Math.max(0, (vpH - size) / 2);
+
+  imgMap.style.width = `${size}px`;
+  imgMap.style.height = `${size}px`;
+  imgMap.style.left = `${offsetX}px`;
+  imgMap.style.top = `${offsetY}px`;
+
+  lineSvg.style.width = `${vpW}px`;
+  lineSvg.style.height = `${vpH}px`;
+
+  pinsContainer.innerHTML = "";
+  lineSvg.innerHTML = "";
+
+  const activeKey = state.selectedLineup ? (state.selectedLineup.cloud_id || state.selectedLineup.id) : null;
+
+  // 現在のマップに属する定点群から投げる位置(pos_x, pos_y)があるものを薄いピンでプロット
+  state.filteredLineups.forEach((item) => {
+    const px = parseFloat(item.pos_x);
+    const py = parseFloat(item.pos_y);
+    if (isNaN(px) || isNaN(py) || px <= 0 || py <= 0) return;
+
+    const pinX = offsetX + (px / 1024.0) * size;
+    const pinY = offsetY + (py / 1024.0) * size;
+
+    const pin = document.createElement("div");
+    pin.className = "overview-pin";
+    const itemKey = item.cloud_id || item.id;
+    if (activeKey && itemKey === activeKey) {
+      pin.classList.add("is-active");
+    }
+
+    pin.style.left = `${pinX.toFixed(1)}px`;
+    pin.style.top = `${pinY.toFixed(1)}px`;
+    pin.dataset.key = itemKey;
+    pin.title = `${item.agent || ""} - ${item.ability || ""}`;
+
+    // ホバー時に濃く強調 ＆ 着弾位置への直線描画（着弾位置にピンは置かない）
+    pin.addEventListener("mouseenter", () => {
+      showOverviewHoverLine(item, pinX, pinY, size, offsetX, offsetY);
+      showOverviewTooltip(item, pinX, pinY);
+    });
+
+    pin.addEventListener("mouseleave", () => {
+      clearOverviewHoverLine();
+      hideOverviewTooltip();
+    });
+
+    // クリックで該当定点を選択
+    pin.addEventListener("click", (e) => {
+      e.stopPropagation();
+      selectLineup(item);
+
+      // 下半分のカード一覧で該当カードへスクロール
+      const card = document.querySelector(`.custom-lineup-card[data-key="${itemKey}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    });
+
+    pinsContainer.appendChild(pin);
+  });
+}
+
+// ホバー時直線描画（着弾位置にはピンは置かず直線＋十字ターゲットのみ）
+function showOverviewHoverLine(item, startX, startY, mapSize, offsetX, offsetY) {
+  const lineSvg = document.getElementById("overview-line-svg");
+  if (!lineSvg) return;
+  lineSvg.innerHTML = "";
+
+  const tx = parseFloat(item.target_x);
+  const ty = parseFloat(item.target_y);
+  if (isNaN(tx) || isNaN(ty) || tx <= 0 || ty <= 0) return;
+
+  const endX = offsetX + (tx / 1024.0) * mapSize;
+  const endY = offsetY + (ty / 1024.0) * mapSize;
+
+  // グローライン
+  const glow = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  glow.setAttribute("x1", startX);
+  glow.setAttribute("y1", startY);
+  glow.setAttribute("x2", endX);
+  glow.setAttribute("y2", endY);
+  glow.setAttribute("stroke", "rgba(255, 70, 85, 0.45)");
+  glow.setAttribute("stroke-width", "6");
+  glow.setAttribute("stroke-linecap", "round");
+
+  // メイン破線ライン
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", startX);
+  line.setAttribute("y1", startY);
+  line.setAttribute("x2", endX);
+  line.setAttribute("y2", endY);
+  line.setAttribute("stroke", "#ff4655");
+  line.setAttribute("stroke-width", "2.2");
+  line.setAttribute("stroke-linecap", "round");
+  line.setAttribute("stroke-dasharray", "5,3");
+
+  // 着弾地点ターゲット（ピンは置かず十字ターゲットのみ）
+  const cross = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  cross.setAttribute("d", `M ${endX - 5} ${endY} L ${endX + 5} ${endY} M ${endX} ${endY - 5} L ${endX} ${endY + 5}`);
+  cross.setAttribute("stroke", "#ff4655");
+  cross.setAttribute("stroke-width", "2");
+
+  lineSvg.appendChild(glow);
+  lineSvg.appendChild(line);
+  lineSvg.appendChild(cross);
+}
+
+function clearOverviewHoverLine() {
+  const lineSvg = document.getElementById("overview-line-svg");
+  if (lineSvg) lineSvg.innerHTML = "";
+}
+
+function showOverviewTooltip(item, x, y) {
+  const tooltip = document.getElementById("overview-tooltip");
+  if (!tooltip) return;
+  const title = `${escapeHtml(item.agent || "")} - ${escapeHtml(item.ability || "")}`;
+  const path = `${escapeHtml(item.start_loc || "投げる位置")} ➔ ${escapeHtml(item.end_loc || "着弾位置")}`;
+  tooltip.innerHTML = `<strong>${title}</strong><br><span style="color:#38bdf8;">${path}</span>`;
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top = `${y}px`;
+  tooltip.style.display = "block";
+}
+
+function hideOverviewTooltip() {
+  const tooltip = document.getElementById("overview-tooltip");
+  if (tooltip) tooltip.style.display = "none";
 }
