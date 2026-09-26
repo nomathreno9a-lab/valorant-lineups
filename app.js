@@ -767,6 +767,8 @@ function setMapSide(side) {
   if (state.selectedLineup) {
     updateMinimapPins(state.selectedLineup);
   }
+  // 全体ミニマップも同じ陣営角度に同期
+  updateOverviewMinimap();
 }
 
 // 0°基準元画像座標 (origX, origY) -> 表示用回転後画面座標 (dispX, dispY)
@@ -806,7 +808,7 @@ function getDrawnImageRect(containerEl, imgEl) {
   return { x, y, width, height };
 }
 
-// ミニマップおよび青・赤ピンの描画更新（デスクトップアプリ完全準拠・正確ピクセル配置・陣営回転対応）
+// ミニマップおよび青・赤ピン・矢印の描画更新（デスクトップアプリ完全準拠・正確ピクセル配置・陣営回転対応）
 function updateMinimapPins(lineup) {
   const pinStart = document.getElementById("pin-start-marker");
   const pinEnd = document.getElementById("pin-end-marker");
@@ -834,14 +836,16 @@ function updateMinimapPins(lineup) {
     const offsetY = (rect.height - size) / 2;
 
     // 立ち位置ピン（青）: pos_x, pos_y (0〜1023)
+    let startPinX = null;
+    let startPinY = null;
     const px = parseFloat(lineup.pos_x);
     const py = parseFloat(lineup.pos_y);
     if (!isNaN(px) && !isNaN(py) && px > 0 && py > 0) {
       const dispStart = origCoordToDispCoord(px, py, currentRot);
-      const pinX = offsetX + (dispStart.x / 1023.0) * size;
-      const pinY = offsetY + (dispStart.y / 1023.0) * size;
-      pinStart.style.left = `${pinX.toFixed(1)}px`;
-      pinStart.style.top = `${pinY.toFixed(1)}px`;
+      startPinX = offsetX + (dispStart.x / 1023.0) * size;
+      startPinY = offsetY + (dispStart.y / 1023.0) * size;
+      pinStart.style.left = `${startPinX.toFixed(1)}px`;
+      pinStart.style.top = `${startPinY.toFixed(1)}px`;
       pinStart.style.display = "block";
       pinStart.title = `投げる位置: (${Math.round(px)}, ${Math.round(py)})`;
     } else {
@@ -849,18 +853,64 @@ function updateMinimapPins(lineup) {
     }
 
     // 着弾位置ピン（赤）: target_x, target_y (0〜1023)
+    let endPinX = null;
+    let endPinY = null;
     const tx = parseFloat(lineup.target_x);
     const ty = parseFloat(lineup.target_y);
     if (!isNaN(tx) && !isNaN(ty) && tx > 0 && ty > 0) {
       const dispEnd = origCoordToDispCoord(tx, ty, currentRot);
-      const pinX = offsetX + (dispEnd.x / 1023.0) * size;
-      const pinY = offsetY + (dispEnd.y / 1023.0) * size;
-      pinEnd.style.left = `${pinX.toFixed(1)}px`;
-      pinEnd.style.top = `${pinY.toFixed(1)}px`;
+      endPinX = offsetX + (dispEnd.x / 1023.0) * size;
+      endPinY = offsetY + (dispEnd.y / 1023.0) * size;
+      pinEnd.style.left = `${endPinX.toFixed(1)}px`;
+      pinEnd.style.top = `${endPinY.toFixed(1)}px`;
       pinEnd.style.display = "block";
       pinEnd.title = `着弾位置: (${Math.round(tx)}, ${Math.round(ty)})`;
     } else {
       pinEnd.style.display = "none";
+    }
+
+    // 投げる位置と着弾位置を結ぶ矢印（青→赤のネオングラデーション矢印）
+    const arrowSvg = document.getElementById("detail-minimap-arrow-svg");
+    const arrowGlow = document.getElementById("detail-arrow-glow");
+    const arrowLine = document.getElementById("detail-arrow-line");
+    const arrowGrad = document.getElementById("detail-arrow-grad");
+    if (arrowSvg && arrowGlow && arrowLine && arrowGrad) {
+      if (startPinX !== null && endPinX !== null) {
+        const dx = endPinX - startPinX;
+        const dy = endPinY - startPinY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 16) {
+          const offsetStart = 8;
+          const offsetEnd = 10;
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const x1 = (startPinX + nx * offsetStart).toFixed(1);
+          const y1 = (startPinY + ny * offsetStart).toFixed(1);
+          const x2 = (endPinX - nx * offsetEnd).toFixed(1);
+          const y2 = (endPinY - ny * offsetEnd).toFixed(1);
+
+          arrowGlow.setAttribute("x1", x1);
+          arrowGlow.setAttribute("y1", y1);
+          arrowGlow.setAttribute("x2", x2);
+          arrowGlow.setAttribute("y2", y2);
+
+          arrowLine.setAttribute("x1", x1);
+          arrowLine.setAttribute("y1", y1);
+          arrowLine.setAttribute("x2", x2);
+          arrowLine.setAttribute("y2", y2);
+
+          arrowGrad.setAttribute("x1", x1);
+          arrowGrad.setAttribute("y1", y1);
+          arrowGrad.setAttribute("x2", x2);
+          arrowGrad.setAttribute("y2", y2);
+
+          arrowSvg.style.display = "block";
+        } else {
+          arrowSvg.style.display = "none";
+        }
+      } else {
+        arrowSvg.style.display = "none";
+      }
     }
   };
 
@@ -1690,6 +1740,12 @@ function updateOverviewMinimap() {
     imgMap.src = targetSrc;
   }
 
+  // 右の定点情報と同じ角度（マップデフォルト回転角 ＋ アタッカー／ディフェンダー反転）に同期
+  const baseRot = MAP_DEFAULT_ROTATIONS[currentMap] ?? MAP_DEFAULT_ROTATIONS[enName] ?? 0;
+  const currentRot = (state.currentMapSide === "atk") ? baseRot : ((baseRot + 180) % 360);
+  imgMap.style.transform = `rotate(${currentRot}deg)`;
+  imgMap.style.transformOrigin = "center center";
+
   const vpRect = viewport.getBoundingClientRect();
   const vpW = vpRect.width || 350;
   const vpH = vpRect.height || 260;
@@ -1716,8 +1772,10 @@ function updateOverviewMinimap() {
     const py = parseFloat(item.pos_y);
     if (isNaN(px) || isNaN(py) || px <= 0 || py <= 0) return;
 
-    const pinX = offsetX + (px / 1024.0) * size;
-    const pinY = offsetY + (py / 1024.0) * size;
+    // 回転角 currentRot に応じて画面座標に変換
+    const dispStart = origCoordToDispCoord(px, py, currentRot);
+    const pinX = offsetX + (dispStart.x / 1023.0) * size;
+    const pinY = offsetY + (dispStart.y / 1023.0) * size;
 
     const pin = document.createElement("div");
     pin.className = "overview-pin";
@@ -1733,8 +1791,8 @@ function updateOverviewMinimap() {
 
     // ホバー時に濃く強調 ＆ 着弾位置への直線描画（着弾位置にピンは置かない）
     pin.addEventListener("mouseenter", () => {
-      showOverviewHoverLine(item, pinX, pinY, size, offsetX, offsetY);
-      showOverviewTooltip(item, pinX, pinY);
+      showOverviewHoverLine(item, pinX, pinY, size, offsetX, offsetY, currentRot);
+      showOverviewTooltip(item, pin);
     });
 
     pin.addEventListener("mouseleave", () => {
@@ -1759,7 +1817,7 @@ function updateOverviewMinimap() {
 }
 
 // ホバー時直線描画（着弾位置にはピンは置かず直線＋十字ターゲットのみ）
-function showOverviewHoverLine(item, startX, startY, mapSize, offsetX, offsetY) {
+function showOverviewHoverLine(item, startX, startY, mapSize, offsetX, offsetY, currentRot) {
   const lineSvg = document.getElementById("overview-line-svg");
   if (!lineSvg) return;
   lineSvg.innerHTML = "";
@@ -1768,8 +1826,10 @@ function showOverviewHoverLine(item, startX, startY, mapSize, offsetX, offsetY) 
   const ty = parseFloat(item.target_y);
   if (isNaN(tx) || isNaN(ty) || tx <= 0 || ty <= 0) return;
 
-  const endX = offsetX + (tx / 1024.0) * mapSize;
-  const endY = offsetY + (ty / 1024.0) * mapSize;
+  // 回転角 currentRot に応じて画面座標に変換
+  const dispEnd = origCoordToDispCoord(tx, ty, currentRot || 0);
+  const endX = offsetX + (dispEnd.x / 1023.0) * mapSize;
+  const endY = offsetY + (dispEnd.y / 1023.0) * mapSize;
 
   // グローライン
   const glow = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -1808,14 +1868,37 @@ function clearOverviewHoverLine() {
   if (lineSvg) lineSvg.innerHTML = "";
 }
 
-function showOverviewTooltip(item, x, y) {
+function showOverviewTooltip(item, pinEl) {
   const tooltip = document.getElementById("overview-tooltip");
-  if (!tooltip) return;
+  const viewport = document.getElementById("overview-map-viewport");
+  if (!tooltip || !viewport || !pinEl) return;
   const title = `${escapeHtml(item.agent || "")} - ${escapeHtml(item.ability || "")}`;
   const path = `${escapeHtml(item.start_loc || "投げる位置")} ➔ ${escapeHtml(item.end_loc || "着弾位置")}`;
   tooltip.innerHTML = `<strong>${title}</strong><br><span style="color:#38bdf8;">${path}</span>`;
-  tooltip.style.left = `${x}px`;
-  tooltip.style.top = `${y}px`;
+
+  // ピンの実画面位置とビューポートの実画面位置からピクセル座標を算出
+  const pinRect = pinEl.getBoundingClientRect();
+  const vpRect = viewport.getBoundingClientRect();
+
+  const pinCenterX = (pinRect.left + pinRect.right) / 2 - vpRect.left;
+  const pinTopY = pinRect.top - vpRect.top;
+
+  // 上枠に見切れるかどうかの判定（上余白が45px未満の場合は下側に反転表示）
+  if (pinTopY < 45) {
+    tooltip.classList.add("flip-down");
+  } else {
+    tooltip.classList.remove("flip-down");
+  }
+
+  // 左右の見切れ防止クランプ（ビューポート幅内に収める）
+  let finalX = pinCenterX;
+  const minX = 75;
+  const maxX = Math.max(minX, vpRect.width - 75);
+  if (finalX < minX) finalX = minX;
+  if (finalX > maxX) finalX = maxX;
+
+  tooltip.style.left = `${finalX.toFixed(1)}px`;
+  tooltip.style.top = `${pinTopY.toFixed(1)}px`;
   tooltip.style.display = "block";
 }
 
