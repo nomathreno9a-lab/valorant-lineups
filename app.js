@@ -732,15 +732,41 @@ function selectLineup(lineup) {
   const imgAim = document.getElementById("img-aim-view");
   const imgStand = document.getElementById("img-stand-view");
   const imgZoom = document.getElementById("img-zoom-view");
+  const ring = document.getElementById("aim-target-ring");
+
+  // 前回のマーク表示を一旦非表示にしてチラつき・残存を防止
+  if (ring) {
+    ring.style.display = "none";
+  }
 
   if (imgAim) imgAim.src = aimUrl;
   if (imgStand) imgStand.src = standUrl;
+
   if (imgZoom) {
-    imgZoom.src = zoomUrl;
+    // 直前の古いイベントリスナーを確実にクリア（1つ前の定点による上書きを防止）
+    imgZoom.onload = null;
+    imgZoom.onerror = null;
+
+    const targetKey = String(lineup.cloud_id || lineup.id || "");
+
+    const onZoomReady = () => {
+      // 現在選択中の定点と一致している場合のみマークを描画
+      if (state.selectedLineup && String(state.selectedLineup.cloud_id || state.selectedLineup.id || "") === targetKey) {
+        updateZoomRing(state.selectedLineup);
+      }
+    };
+
+    imgZoom.onload = onZoomReady;
+
+    if (imgZoom.getAttribute("src") !== zoomUrl) {
+      imgZoom.src = zoomUrl;
+    }
+
+    // 画像がすでに読み込み完了している（キャッシュ済み）場合
     if (imgZoom.complete && imgZoom.naturalWidth) {
-      updateZoomRing(lineup);
-    } else {
-      imgZoom.onload = () => updateZoomRing(lineup);
+      requestAnimationFrame(() => {
+        onZoomReady();
+      });
     }
   }
 
@@ -935,15 +961,29 @@ function updateZoomRing(lineup) {
   const container = document.querySelector(".zoom-canvas-wrap");
   if (!ring || !imgZoom || !container) return;
 
+  const targetLineup = lineup || state.selectedLineup;
+  if (!targetLineup) {
+    ring.style.display = "none";
+    return;
+  }
+
+  // 現在選択中の定点と渡された定点が異なる場合は描画を中止（古い非同期呼び出しからの保護）
+  const curKey = state.selectedLineup ? String(state.selectedLineup.cloud_id || state.selectedLineup.id || "") : null;
+  const targetKey = String(targetLineup.cloud_id || targetLineup.id || "");
+  if (curKey && targetKey && curKey !== targetKey) {
+    return;
+  }
+
   const nw = imgZoom.naturalWidth || 400;
   const nh = imgZoom.naturalHeight || 400;
 
-  const rawZx = parseFloat(lineup.zoom_pos_x);
-  const rawZy = parseFloat(lineup.zoom_pos_y);
-  const rawZr = parseFloat(lineup.zoom_size);
+  const rawZx = parseFloat(targetLineup.zoom_pos_x);
+  const rawZy = parseFloat(targetLineup.zoom_pos_y);
+  const rawZr = parseFloat(targetLineup.zoom_size);
 
-  const zx = !isNaN(rawZx) ? rawZx : (nw / 2);
-  const zy = !isNaN(rawZy) ? rawZy : (nh / 2);
+  // 0.0〜1.0未満の小数は比率座標、1.0以上は実ピクセル座標
+  const zx = !isNaN(rawZx) ? (rawZx > 0.0 && rawZx < 1.0 ? rawZx * nw : rawZx) : (nw / 2);
+  const zy = !isNaN(rawZy) ? (rawZy > 0.0 && rawZy < 1.0 ? rawZy * nh : rawZy) : (nh / 2);
   const zr = !isNaN(rawZr) ? rawZr : 16.0;
 
   const rect = getDrawnImageRect(container, imgZoom);
