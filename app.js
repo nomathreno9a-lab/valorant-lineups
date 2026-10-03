@@ -72,6 +72,7 @@ let isInitialLoad = true;
 // ==============================================================================
 window.addEventListener("DOMContentLoaded", async () => {
   setupEventListeners();
+  setupResizeObservers();
   await loadMastersData();
   await loadLineupsData();
 
@@ -382,6 +383,15 @@ function toggleDrawer(drawerId) {
 function closeAllDrawers() {
   document.querySelectorAll(".expand-drawer").forEach(d => d.classList.remove("open"));
   document.querySelectorAll(".slot-chevron").forEach(c => c.classList.remove("open"));
+
+  // ドロワーが閉じるアニメーション（0.35秒）完了後に、最新確定サイズでピン・拡大図・全体ミニマップを確実に再計算
+  setTimeout(() => {
+    if (state.selectedLineup) {
+      updateMinimapPins(state.selectedLineup);
+      updateZoomRing(state.selectedLineup);
+    }
+    updateOverviewMinimap();
+  }, 380);
 }
 
 // ==============================================================================
@@ -916,6 +926,10 @@ function updateMinimapPins(lineup) {
   const viewport = document.getElementById("minimap-viewport");
   if (!pinStart || !pinEnd || !imgMinimap || !viewport) return;
 
+  // 定点やマップ切り替え時のピン移動アニメーション（前の位置から滑ってくる現象）を一時解除して瞬時に配置
+  pinStart.style.transition = "none";
+  pinEnd.style.transition = "none";
+
   // ミニマップ画像を設定（同じマップならsrcを再代入せずチラつき・回転リセットを防止）
   const enName = MAP_JA_TO_EN[lineup.map] || lineup.map;
   const targetSrc = `assets/maps/${enName}.png`;
@@ -928,7 +942,14 @@ function updateMinimapPins(lineup) {
   const currentRot = (state.currentMapSide === "atk") ? baseRot : ((baseRot + 180) % 360);
   imgMinimap.style.transform = `rotate(${currentRot}deg)`;
 
+  const targetKey = String(lineup.cloud_id || lineup.id || "");
+
   const doUpdate = () => {
+    // 現在選択中の定点と異なる場合は描画を中止（古い非同期処理による上書きを防止）
+    if (state.selectedLineup && String(state.selectedLineup.cloud_id || state.selectedLineup.id || "") !== targetKey) {
+      return;
+    }
+
     const rect = viewport.getBoundingClientRect();
     if (!rect || rect.width <= 0 || rect.height <= 0) return;
     const size = Math.min(rect.width, rect.height);
@@ -1014,14 +1035,81 @@ function updateMinimapPins(lineup) {
     }
   };
 
-  requestAnimationFrame(() => {
-    doUpdate();
-  });
+  // 即時フレーム描画
+  requestAnimationFrame(() => doUpdate());
+
+  // ドロワー閉動作等のレイアウト変化に備えた多段タイマー実行
+  setTimeout(() => doUpdate(), 60);
+  setTimeout(() => doUpdate(), 180);
+  setTimeout(() => doUpdate(), 380);
 
   if (!imgMinimap.complete || !imgMinimap.naturalWidth) {
     imgMinimap.onload = () => {
       requestAnimationFrame(() => doUpdate());
     };
+  }
+}
+
+// ビューポートサイズ自動監視（ドロワー開閉・ウィンドウリサイズ完全追従）
+function setupResizeObservers() {
+  if (typeof ResizeObserver === "undefined") return;
+
+  // 詳細ミニマップのビューポート監視
+  const viewport = document.getElementById("minimap-viewport");
+  if (viewport) {
+    let lastW = 0;
+    let lastH = 0;
+    const roMinimap = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (Math.abs(width - lastW) > 0.5 || Math.abs(height - lastH) > 0.5) {
+          lastW = width;
+          lastH = height;
+          if (state.selectedLineup) {
+            updateMinimapPins(state.selectedLineup);
+          }
+        }
+      }
+    });
+    roMinimap.observe(viewport);
+  }
+
+  // 拡大図プレビューコンテナの監視
+  const zoomWrap = document.querySelector(".zoom-canvas-wrap");
+  if (zoomWrap) {
+    let lastW = 0;
+    let lastH = 0;
+    const roZoom = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (Math.abs(width - lastW) > 0.5 || Math.abs(height - lastH) > 0.5) {
+          lastW = width;
+          lastH = height;
+          if (state.selectedLineup) {
+            updateZoomRing(state.selectedLineup);
+          }
+        }
+      }
+    });
+    roZoom.observe(zoomWrap);
+  }
+
+  // 全体ミニマップのビューポート監視
+  const overviewVp = document.getElementById("overview-map-viewport");
+  if (overviewVp) {
+    let lastW = 0;
+    let lastH = 0;
+    const roOverview = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (Math.abs(width - lastW) > 0.5 || Math.abs(height - lastH) > 0.5) {
+          lastW = width;
+          lastH = height;
+          updateOverviewMinimap();
+        }
+      }
+    });
+    roOverview.observe(overviewVp);
   }
 }
 
