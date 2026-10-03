@@ -65,6 +65,8 @@ const state = {
   currentMapSide: "atk" // "atk" | "def"
 };
 
+let isInitialLoad = true;
+
 // ==============================================================================
 // 1. 初期化とデータ読み込み
 // ==============================================================================
@@ -81,6 +83,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // ログ自動連携の復元チェック
   initAutoLogOnLoad();
+
+  isInitialLoad = false;
 });
 
 // マスタデータ（masters.json）の読み込み
@@ -601,6 +605,73 @@ function applyFilters() {
 
   renderLineupCards();
   updateOverviewMinimap();
+
+  // 初期ロード時でURLディープリンク等の判定前の場合は自動選択しない
+  if (isInitialLoad && !state.selectedLineup) {
+    return;
+  }
+
+  // 現在選択中の定点が絞り込み結果に含まれているかチェック
+  const curKey = state.selectedLineup ? String(state.selectedLineup.cloud_id || state.selectedLineup.id || "") : null;
+  const isStillPresent = curKey && state.filteredLineups.some(l => String(l.cloud_id || l.id || "") === curKey);
+
+  if (!isStillPresent) {
+    if (state.filteredLineups.length > 0) {
+      // 絞り込み後の先頭定点を自動選択（プレビューを自動更新）
+      selectLineup(state.filteredLineups[0]);
+    } else {
+      // 該当データなしの場合はプレビューを初期化
+      clearLineupPreview();
+    }
+  }
+}
+
+// 定点詳細プレビューの初期化（空状態表示）
+function clearLineupPreview() {
+  state.selectedLineup = null;
+
+  // カードのアクティブ状態解除
+  document.querySelectorAll(".custom-lineup-card").forEach(card => card.classList.remove("active"));
+  document.querySelectorAll(".overview-pin").forEach(pin => pin.classList.remove("is-active"));
+
+  const emptyBox = document.getElementById("preview-empty-state");
+  const contentBox = document.getElementById("preview-content-box");
+  if (emptyBox) emptyBox.style.display = "flex";
+  if (contentBox) contentBox.style.display = "none";
+
+  // タイトル・タグ等のテキスト初期化
+  const titleEl = document.getElementById("view-title");
+  if (titleEl) titleEl.textContent = "";
+  const tagMap = document.getElementById("tag-map");
+  if (tagMap) tagMap.textContent = "";
+  const tagAgent = document.getElementById("tag-agent");
+  if (tagAgent) tagAgent.textContent = "";
+  const tagAbility = document.getElementById("tag-ability");
+  if (tagAbility) tagAbility.textContent = "";
+  const tagLoc = document.getElementById("tag-loc");
+  if (tagLoc) tagLoc.textContent = "";
+  const tagThrow = document.getElementById("tag-throw");
+  if (tagThrow) tagThrow.textContent = "";
+  const viewNotes = document.getElementById("view-notes");
+  if (viewNotes) viewNotes.textContent = "";
+
+  // 画像と照準マークの非表示
+  const imgAim = document.getElementById("img-aim-view");
+  const imgStand = document.getElementById("img-stand-view");
+  const imgZoom = document.getElementById("img-zoom-view");
+  const ring = document.getElementById("aim-target-ring");
+  if (imgAim) imgAim.src = "";
+  if (imgStand) imgStand.src = "";
+  if (imgZoom) imgZoom.src = "";
+  if (ring) ring.style.display = "none";
+
+  // 詳細ミニマップのピンおよび矢印の非表示
+  const pinStart = document.getElementById("pin-start-marker");
+  const pinEnd = document.getElementById("pin-end-marker");
+  const arrowSvg = document.getElementById("detail-minimap-arrow-svg");
+  if (pinStart) pinStart.style.display = "none";
+  if (pinEnd) pinEnd.style.display = "none";
+  if (arrowSvg) arrowSvg.style.display = "none";
 }
 
 // HTML特殊文字エスケープ
