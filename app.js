@@ -1456,13 +1456,17 @@ function parseValorantLog(logText, isQuiet = false) {
     const hasChanged = matchKey !== lastMatchedSummary;
     lastMatchedSummary = matchKey;
 
-    if (foundMapJa) state.filters.map = foundMapJa;
-    if (foundAgentJa) {
-      state.filters.agent = foundAgentJa;
-      state.filters.ability = "";
+    // 無関係なログ追記では、手動で選んだ検索条件を維持する。
+    // 初回・手動読み込み、または検出したマップ/エージェントの変化時に反映する。
+    if (!isQuiet || hasChanged) {
+      if (foundMapJa) state.filters.map = foundMapJa;
+      if (foundAgentJa) {
+        state.filters.agent = foundAgentJa;
+        state.filters.ability = "";
+      }
+      updateSlotsDisplay();
+      applyFilters();
     }
-    updateSlotsDisplay();
-    applyFilters();
 
     const statusText = `自動追従中: ${foundMapJa || "マップ未定"} - ${foundAgentJa || "キャラ未定"}`;
     if (badge) {
